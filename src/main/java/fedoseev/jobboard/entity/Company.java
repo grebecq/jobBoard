@@ -32,6 +32,10 @@ public class Company {
 
     private String website;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private User owner;
+
     @CreatedDate
     @Column(name = "created_at",nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -50,7 +50,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-           // для битого или истекшего токена
         }
 
         filterChain.doFilter(request, response);

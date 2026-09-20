@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Кандидаты", description = "Управление кандидатами")
@@ -18,7 +19,8 @@ public class CandidateController {
 
     private final CandidateService candidateService;
 
-    @Operation(summary = "Создать кандидата", description = "Email должен быть уникальным, иначе 409.")
+    @Operation(summary = "Создать кандидата (ADMIN)", description = "Email должен быть уникальным, иначе 409.")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public CandidateResponse createdCandidate(@RequestBody @Valid CandidateRequest request){

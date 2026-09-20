@@ -8,7 +8,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Компании", description = "Работодатели, публикующие вакансии")
 @RequestMapping("/api/companies")
@@ -20,10 +24,17 @@ public class CompanyController {
         this.companyService = companyService;
     }
 
-    @Operation(summary = "Создать компанию")
+    @Operation(summary = "Создать компанию", description = "Текущий работодатель становится её владельцем.")
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public CompanyResponse createCompany(@Valid @RequestBody CompanyRequest request){
-       return companyService.createCompany(request);
+    public CompanyResponse createCompany(@Valid @RequestBody CompanyRequest request, Authentication authentication){
+       return companyService.createCompany(request, authentication.getName());
+    }
+
+    @Operation(summary = "Мои компании", description = "Компании текущего работодателя — от их имени он публикует вакансии.")
+    @GetMapping("/my")
+    public List<CompanyResponse> getMyCompanies(Authentication authentication) {
+        return companyService.getMyCompanies(authentication.getName());
     }
 
     @Operation(summary = "Список компаний", description = "С пагинацией.")

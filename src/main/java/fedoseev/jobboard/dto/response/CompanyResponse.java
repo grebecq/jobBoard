@@ -22,6 +22,8 @@ public class CompanyResponse {
 
     private String website;
 
+    private Long ownerId;
+
     private LocalDateTime createdAt;
 
 }

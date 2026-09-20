@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,11 +22,12 @@ public class VacancyController {
 
     private final VacancyService vacancyService;
 
-    @Operation(summary = "Создать вакансию", description = "Требует существующий companyId; можно передать skillIds.")
+    @Operation(summary = "Создать вакансию", description = "companyId должен быть id компании текущего работодателя; можно передать skillIds.")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public VacancyResponse createVacancy(@Valid @RequestBody VacancyRequest vacancyRequest){
-        return vacancyService.createdVacancy(vacancyRequest);
+    public VacancyResponse createVacancy(@Valid @RequestBody VacancyRequest vacancyRequest,
+                                         Authentication authentication){
+        return vacancyService.createdVacancy(vacancyRequest, authentication.getName(), isAdmin(authentication));
 
     }
 
@@ -33,6 +35,12 @@ public class VacancyController {
     @GetMapping
     public Page<VacancyResponse> getAllVacancy(Pageable pageable){
         return vacancyService.getAllVacancies(pageable);
+    }
+
+    @Operation(summary = "Мои вакансии", description = "Вакансии компаний текущего работодателя.")
+    @GetMapping("/my")
+    public Page<VacancyResponse> getMyVacancies(Authentication authentication, Pageable pageable){
+        return vacancyService.getMyVacancies(authentication.getName(), pageable);
     }
 
     @Operation(summary = "Вакансия по id")
@@ -49,6 +57,11 @@ public class VacancyController {
             @RequestParam(required = false) String employmentType,
             Pageable pageable ){
         return vacancyService.searchVacancies(city, minSalary, employmentType, pageable);
+    }
+
+    private boolean isAdmin(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
 }

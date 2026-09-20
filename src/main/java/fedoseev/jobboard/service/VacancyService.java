@@ -2,9 +2,11 @@ package fedoseev.jobboard.service;
 
 import fedoseev.jobboard.dto.request.VacancyRequest;
 import fedoseev.jobboard.dto.response.VacancyResponse;
+import fedoseev.jobboard.entity.Company;
 import fedoseev.jobboard.entity.Skill;
 import fedoseev.jobboard.entity.Vacancy;
 import fedoseev.jobboard.exception.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import fedoseev.jobboard.repository.CompanyRepository;
 import fedoseev.jobboard.repository.SkillRepository;
 import fedoseev.jobboard.repository.VacancyRepository;
@@ -20,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @RequiredArgsConstructor
 @Service
 public class VacancyService {
@@ -28,8 +29,15 @@ public class VacancyService {
     private final SkillRepository skillRepository;
     private final  CompanyRepository companyRepository;
 
+    @Transactional
+    public VacancyResponse createdVacancy(VacancyRequest request, String email, boolean isAdmin){
+        Company company = companyRepository.findById(request.getCompanyId())
+                .orElseThrow(() ->  new ResourceNotFoundException("Company not found "));
 
-    public VacancyResponse createdVacancy(VacancyRequest request){
+        if (!isAdmin && (company.getOwner() == null || !company.getOwner().getEmail().equals(email))) {
+            throw new AccessDeniedException("Вакансию можно публиковать только от имени своей компании");
+        }
+
         Vacancy vacancy = new Vacancy();
         vacancy.setSalaryTo(request.getSalaryTo());
         vacancy.setDescription(request.getDescription());
@@ -37,8 +45,7 @@ public class VacancyService {
         vacancy.setCity(request.getCity());
         vacancy.setEmploymentType(request.getEmploymentType());
         vacancy.setSalaryFrom(request.getSalaryFrom());
-        vacancy.setCompany(companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() ->  new ResourceNotFoundException("Company not found ")));
+        vacancy.setCompany(company);
 
         if (request.getSkillIds() != null && !request.getSkillIds().isEmpty()) {
             List<Skill> skills = skillRepository.findAllById(request.getSkillIds());
@@ -54,6 +61,12 @@ public class VacancyService {
         return vacancyRepository.findAll(pageable)
                 .map(this::mapToResponse);
 
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VacancyResponse> getMyVacancies(String email, Pageable pageable){
+        return vacancyRepository.findByCompany_Owner_Email(email, pageable)
+                .map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
