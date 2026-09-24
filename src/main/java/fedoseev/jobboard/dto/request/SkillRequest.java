@@ -14,6 +14,5 @@ public class SkillRequest {
     @NotBlank(message = "Skill name is required")
     private String name;
 
-    // не задана — попадёт в «Другое» (значение по умолчанию в сущности)
     private SkillCategory category;
 }

@@ -36,7 +36,6 @@ public class VacancyRequest {
 
     private String city;
 
-    // IT-критерии; в API необязательны, форма на фронте требует специализацию и формат
     private EmploymentType employmentType;
 
     private Specialization specialization;

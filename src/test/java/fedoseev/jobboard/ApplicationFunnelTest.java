@@ -20,10 +20,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Сквозной сценарий: работодатель публикует вакансию, кандидат откликается,
- * работодатель приглашает — и только тогда кандидат видит контакты компании.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -64,7 +60,6 @@ class ApplicationFunnelTest {
                 .andExpect(jsonPath("$.telegram").value("funnel_hr"))
                 .andReturn().getResponse().getContentAsString());
 
-        // публичная карточка компании контакты не раскрывает
         mockMvc.perform(get("/api/companies/" + companyId))
                 .andExpect(jsonPath("$.telegram").value(nullValue()))
                 .andExpect(jsonPath("$.contactEmail").value(nullValue()));

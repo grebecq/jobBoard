@@ -22,10 +22,6 @@ public class Specifications {
         return (root, query, cb) -> cb.equal(cb.lower(root.<String>get("city")), value);
     }
 
-    /**
-     * Как на hh.ru: «доход от N» — вилка вакансии дотягивает до N.
-     * Вакансии без зарплаты остаются в выдаче, если не включено «только с зарплатой».
-     */
     public static Specification<Vacancy> salaryAtLeast(Integer minSalary, boolean includeUnspecified) {
         if (minSalary == null) {
             return Specification.unrestricted();
@@ -56,7 +52,6 @@ public class Specifications {
         String pattern = "%" + text.trim().toLowerCase(Locale.ROOT)
                 .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
         return (root, query, cb) -> {
-            // «kotlin» находит и вакансию, где Kotlin указан только в стеке
             Subquery<Long> bySkill = query.subquery(Long.class);
             Root<Vacancy> v = bySkill.from(Vacancy.class);
             Join<Vacancy, Skill> s = v.join("skills");
@@ -71,7 +66,6 @@ public class Specifications {
         };
     }
 
-    /** Поле входит в список значений; пустой список = фильтр не задан. */
     public static Specification<Vacancy> fieldIn(String field, Collection<?> values) {
         if (values == null || values.isEmpty()) {
             return Specification.unrestricted();
@@ -90,13 +84,9 @@ public class Specifications {
         return (root, query, cb) -> cb.equal(root.get("company").get("id"), companyId);
     }
 
-    /**
-     * Сортировка «сначала дороже»: по верхней границе вилки (или нижней, если верхней нет),
-     * вакансии без зарплаты — в конце. Обычным ?sort= так не сделать: в Postgres NULL при DESC идут первыми.
-     */
     public static Specification<Vacancy> orderBySalaryDesc() {
         return (root, query, cb) -> {
-            // для count-запроса пагинации сортировка не нужна и в Postgres ломает агрегат
+            // count-запрос без сортировки
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
                 query.orderBy(
                         cb.desc(cb.coalesce(root.<Integer>get("salaryTo"), root.<Integer>get("salaryFrom")), Nulls.LAST),
@@ -107,10 +97,7 @@ public class Specifications {
         };
     }
 
-    /**
-     * Есть хотя бы один из навыков. Через подзапрос EXISTS, а не join —
-     * иначе вакансия с двумя подходящими навыками задвоится и сломает пагинацию.
-     */
+    // exists вместо join, чтобы не было дублей
     public static Specification<Vacancy> hasAnySkill(Collection<Long> skillIds) {
         if (skillIds == null || skillIds.isEmpty()) {
             return Specification.unrestricted();

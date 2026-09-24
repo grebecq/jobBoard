@@ -27,7 +27,6 @@ public class CompanyRequest {
     @Size(max = 255)
     private String contactEmail;
 
-    // ник, @ник или ссылка t.me — нормализуется в сервисе
     @Size(max = 64)
     private String telegram;
 

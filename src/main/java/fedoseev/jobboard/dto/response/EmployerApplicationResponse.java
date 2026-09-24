@@ -7,9 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/**
- * Отклик глазами работодателя: кандидат откликнулся сам, поэтому его контакты видны сразу.
- */
 @Getter
 @Setter
 @NoArgsConstructor

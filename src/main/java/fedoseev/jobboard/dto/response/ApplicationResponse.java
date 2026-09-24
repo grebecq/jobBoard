@@ -34,7 +34,6 @@ public class ApplicationResponse {
 
     private String employerComment;
 
-    // заполняются только при статусе INVITED
     private String companyContactEmail;
 
     private String companyTelegram;

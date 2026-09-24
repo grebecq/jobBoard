@@ -1,8 +1,5 @@
 package fedoseev.jobboard.enums;
 
-/**
- * Требуемый опыт — те же интервалы, что на hh.ru.
- */
 public enum Experience implements LabeledEnum {
     NO_EXPERIENCE("Без опыта"),
     FROM_1_TO_3("От 1 года до 3 лет"),

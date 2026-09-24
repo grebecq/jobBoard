@@ -2,7 +2,6 @@ import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || ''
 
-// списки фильтров уходят повтором параметра (?grade=JUNIOR&grade=MIDDLE) — так их ждёт Spring
 export const api = axios.create({ baseURL: BASE_URL, paramsSerializer: { indexes: null } })
 
 api.interceptors.request.use((config) => {
@@ -60,7 +59,6 @@ export function mapVacancy(v) {
     description: v.description || '',
     skills: (v.skillNames || v.skills || []).map((s) => (typeof s === 'string' ? s : s.name)),
     createdAt: v.createdAt || null,
-    // есть только в /api/vacancies/my
     applicationsCount: v.applicationsCount ?? null,
     newApplicationsCount: v.newApplicationsCount ?? null,
   }
@@ -108,7 +106,6 @@ export const applicationsApi = {
   apply: (vacancyId, coverLetter) =>
     api.post(`/api/applications/apply/${vacancyId}`, { coverLetter: coverLetter || null }).then((r) => r.data),
   mine: () => api.get('/api/applications/my').then((r) => r.data),
-  // кабинет работодателя
   forVacancy: (vacancyId) => api.get(`/api/applications/vacancy/${vacancyId}`).then((r) => r.data),
   open: (id) => api.get(`/api/applications/${id}`).then((r) => r.data),
   setStatus: (id, status, comment) =>

@@ -37,7 +37,6 @@ export default function VacancyApplications() {
     if (openId === a.id) { setOpenId(null); return }
     setOpenId(a.id)
     if (a.status === 'PENDING') {
-      // открытие отклика = «просмотрен» для кандидата
       try { replace(await applicationsApi.open(a.id)) } catch (e) { toast(apiMessage(e)) }
     }
   }

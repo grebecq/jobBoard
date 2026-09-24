@@ -1,8 +1,5 @@
 package fedoseev.jobboard.enums;
 
-/**
- * Группа в справочнике технологий.
- */
 public enum SkillCategory implements LabeledEnum {
     LANGUAGE("Языки программирования"),
     BACKEND("Бэкенд"),

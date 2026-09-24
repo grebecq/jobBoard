@@ -3,10 +3,6 @@ import { applicationsApi } from './api.js'
 import { useAuth } from './auth.jsx'
 import ApplyModal from './components/ApplyModal.jsx'
 
-/**
- * Общая логика кнопки «Откликнуться» для списка и страницы вакансии:
- * гость → окно входа, кандидат → модалка с письмом, работодатель кнопку не видит.
- */
 export function useApplyFlow(onAuth) {
   const { user, isAuthenticated } = useAuth()
   const isCandidate = user?.role === 'CANDIDATE'

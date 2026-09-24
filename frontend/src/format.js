@@ -6,7 +6,6 @@ export function formatSalary(from, to) {
   return 'з/п не указана'
 }
 
-// подписи специализаций, грейдов и т.п. — в dictionaries.jsx (приходят с бэка)
 
 export const APPLICATION_STATUS = {
   PENDING:  { cls: 'pending',  label: 'Отправлен' },
@@ -22,7 +21,6 @@ export function formatDate(iso) {
   return iso ? new Date(iso).toLocaleDateString('ru-RU') : ''
 }
 
-// бэк хранит голый ник без @
 export function telegramUrl(handle) {
   return handle ? `https://t.me/${handle}` : null
 }

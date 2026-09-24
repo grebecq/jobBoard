@@ -91,9 +91,6 @@ public class ApplicationService {
                 .toList();
     }
 
-    /**
-     * Работодатель открыл отклик — для кандидата он становится «Просмотрен».
-     */
     @Transactional
     public EmployerApplicationResponse getForEmployer(Long id, String email, boolean isAdmin) {
         Application application = findOwnApplication(id, email, isAdmin);
@@ -111,7 +108,6 @@ public class ApplicationService {
         Application application = findOwnApplication(id, email, isAdmin);
         application.setStatus(request.getStatus());
         application.setEmployerComment(blankToNull(request.getComment()));
-        // flush, чтобы аудит успел проставить updatedAt до маппинга в ответ
         return mapToEmployerResponse(applicationRepository.saveAndFlush(application));
     }
 
@@ -152,7 +148,6 @@ public class ApplicationService {
         response.setCreatedAt(application.getCreatedAt());
         response.setUpdatedAt(application.getUpdatedAt());
 
-        // контакты работодателя кандидат получает только вместе с приглашением
         if (application.getStatus() == ApplicationStatus.INVITED) {
             String contactEmail = company.getContactEmail();
             if (contactEmail == null && company.getOwner() != null) {

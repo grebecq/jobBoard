@@ -80,7 +80,6 @@ public class CompanyService {
        return mapToResponse(company, false);
     }
 
-    // контакты компании публично не светим: кандидат получает их вместе с приглашением
     private CompanyResponse mapToResponse(Company company, boolean withContacts){
         CompanyResponse response = new CompanyResponse();
         response.setWebsite(company.getWebsite());

@@ -8,10 +8,6 @@ const EMPTY = {
 
 const DictCtx = createContext(null)
 
-/**
- * Справочники (специализации, грейды, навыки…) грузятся один раз на всё приложение.
- * Подписи живут на бэке в enum-ах — фронт их не хардкодит.
- */
 export function DictionariesProvider({ children }) {
   const [data, setData] = useState(EMPTY)
   const [loaded, setLoaded] = useState(false)

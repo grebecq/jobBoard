@@ -5,9 +5,6 @@ import fedoseev.jobboard.enums.LabeledEnum;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Всё, что нужно фронту для фильтров и формы вакансии, одним запросом.
- */
 public record DictionariesResponse(
         List<Option> specializations,
         List<Option> grades,

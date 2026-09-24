@@ -51,7 +51,6 @@ public class VacancyResponse {
 
     private Set<String> skillNames;
 
-    // только в кабинете работодателя (/api/vacancies/my), в публичных ответах null
     private Long applicationsCount;
 
     private Long newApplicationsCount;

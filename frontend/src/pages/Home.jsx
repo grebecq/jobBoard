@@ -9,7 +9,6 @@ import { useDictionaries } from '../dictionaries.jsx'
 const PAGE_SIZE = 20
 const LIST_KEYS = ['specialization', 'grade', 'experience', 'workFormat', 'employmentType', 'skill']
 
-// фильтры живут в URL: поиском можно поделиться ссылкой, «назад» в браузере работает
 function readFilters(sp) {
   const f = {
     q: sp.get('q') || '',
@@ -52,7 +51,6 @@ export default function Home({ onAuth }) {
   const [error, setError] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  // черновики текстовых полей, чтобы не искать на каждую букву
   const [qDraft, setQDraft] = useState(filters.q)
   const [cityDraft, setCityDraft] = useState(filters.city)
   const [salaryDraft, setSalaryDraft] = useState(filters.minSalary)
@@ -77,7 +75,6 @@ export default function Home({ onAuth }) {
       .finally(() => setLoading(false))
   }, [key])
 
-  // любое изменение фильтра возвращает на первую страницу
   const update = (patch) => setSp(toParams({ ...filters, page: 0, ...patch }))
   const toggle = (k, v) => update({ [k]: filters[k].includes(v) ? filters[k].filter((x) => x !== v) : [...filters[k], v] })
   const resetAll = () => setSp(toParams({ ...readFilters(new URLSearchParams()), q: filters.q }))
@@ -238,7 +235,6 @@ export default function Home({ onAuth }) {
 function CheckGroup({ title, options, selected, onToggle, collapsedCount }) {
   const [expanded, setExpanded] = useState(false)
   const canCollapse = collapsedCount && options.length > collapsedCount
-  // выбранные всегда видны, даже если группа свёрнута
   const visible = canCollapse && !expanded
     ? options.filter((o, i) => i < collapsedCount || selected.includes(o.value))
     : options

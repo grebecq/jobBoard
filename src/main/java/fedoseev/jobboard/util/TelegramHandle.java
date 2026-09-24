@@ -4,13 +4,8 @@ import fedoseev.jobboard.exception.BadRequestException;
 
 import java.util.regex.Pattern;
 
-/**
- * Приводит то, что пользователь вставил в поле Telegram ("@ivan", "t.me/ivan", "https://t.me/ivan"),
- * к голому нику "ivan". Ссылку https://t.me/ivan собирает фронт.
- */
 public final class TelegramHandle {
 
-    // правила Telegram: 5–32 символа, латиница, цифры и подчёркивание
     private static final Pattern VALID = Pattern.compile("^[A-Za-z0-9_]{5,32}$");
     private static final Pattern PREFIX = Pattern.compile("^(https?://)?(www\\.)?(t\\.me|telegram\\.me)/", Pattern.CASE_INSENSITIVE);
 

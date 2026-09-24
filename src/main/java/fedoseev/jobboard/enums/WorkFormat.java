@@ -1,8 +1,5 @@
 package fedoseev.jobboard.enums;
 
-/**
- * Где работать: офис, гибрид или удалёнка.
- */
 public enum WorkFormat implements LabeledEnum {
     OFFICE("В офисе"),
     HYBRID("Гибрид"),

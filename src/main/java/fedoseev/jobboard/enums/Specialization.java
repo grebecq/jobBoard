@@ -1,8 +1,5 @@
 package fedoseev.jobboard.enums;
 
-/**
- * Специализация (направление) вакансии, как «Профессиональная роль» на hh.ru.
- */
 public enum Specialization implements LabeledEnum {
     BACKEND("Бэкенд-разработка"),
     FRONTEND("Фронтенд-разработка"),

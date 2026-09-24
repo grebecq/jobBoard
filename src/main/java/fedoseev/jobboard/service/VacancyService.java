@@ -88,7 +88,6 @@ public class VacancyService {
             return page;
         }
 
-        // один group-by запрос на всю страницу вместо count() на каждую вакансию
         List<Long> ids = page.getContent().stream().map(VacancyResponse::getId).toList();
         Map<Long, VacancyApplicationStats> stats = applicationRepository.statsByVacancyIds(ids).stream()
                 .collect(Collectors.toMap(VacancyApplicationStats::getVacancyId, Function.identity()));
@@ -156,7 +155,6 @@ public class VacancyService {
             spec = spec.and(Specifications.orderBySalaryDesc());
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         } else if (pageable.getSort().isUnsorted()) {
-            // без явной сортировки — сначала свежие, как на hh
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                     Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")));
         }

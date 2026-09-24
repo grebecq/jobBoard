@@ -1,8 +1,5 @@
 package fedoseev.jobboard.enums;
 
-/**
- * Квалификация кандидата, как на Хабр Карьере.
- */
 public enum Grade implements LabeledEnum {
     INTERN("Стажёр"),
     JUNIOR("Junior"),

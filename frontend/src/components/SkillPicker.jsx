@@ -4,10 +4,6 @@ import { useDictionaries } from '../dictionaries.jsx'
 const POPULAR = ['Java', 'Kotlin', 'Python', 'Go', 'JavaScript', 'TypeScript', 'React', 'Spring Boot',
   'PostgreSQL', 'Docker', 'Kubernetes', 'Kafka', 'C#', 'PHP', 'Vue.js', 'Android SDK']
 
-/**
- * Выбор технологий из справочника: автодополнение + чипсы.
- * value — массив id навыков.
- */
 export default function SkillPicker({ value, onChange, placeholder = 'Java, Kotlin, Docker…', max = 30, compact = false }) {
   const { skills, skillById, label } = useDictionaries()
   const [text, setText] = useState('')
@@ -26,7 +22,6 @@ export default function SkillPicker({ value, onChange, placeholder = 'Java, Kotl
     }
     return skills
       .filter((s) => !selected.has(s.id) && s.name.toLowerCase().includes(q))
-      // сначала те, что начинаются с запроса: «Ja» → Java, JavaScript, а не Django
       .sort((a, b) => a.name.toLowerCase().startsWith(q) === b.name.toLowerCase().startsWith(q)
         ? a.name.length - b.name.length
         : a.name.toLowerCase().startsWith(q) ? -1 : 1)

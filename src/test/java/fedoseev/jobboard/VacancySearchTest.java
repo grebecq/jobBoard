@@ -27,10 +27,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Поиск по IT-критериям. Все запросы ограничены своей компанией (companyId),
- * чтобы не зависеть от вакансий, которые уже лежат в dev-базе.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -135,13 +131,11 @@ class VacancySearchTest {
 
         mockMvc.perform(search().param("q", "kotlin"))
                 .andExpect(jsonPath("$.content[*].title", contains("Senior KOTLIN developer")));
-        // текст ищется и по названиям навыков
         vacancy("{\"title\":\"Backend dev\",\"skillIds\":[" + skill("Kotlin") + "]}");
         mockMvc.perform(search().param("q", "KOTLIN"))
                 .andExpect(jsonPath("$.content[*].title", containsInAnyOrder("Senior KOTLIN developer", "Backend dev")));
         mockMvc.perform(search().param("city", "москва"))
                 .andExpect(jsonPath("$.content[*].title", contains("Senior KOTLIN developer")));
-        // спецсимволы LIKE ищутся буквально
         mockMvc.perform(search().param("q", "%"))
                 .andExpect(jsonPath("$.page.totalElements").value(0));
     }

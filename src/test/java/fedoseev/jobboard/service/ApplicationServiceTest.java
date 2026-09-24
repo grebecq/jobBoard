@@ -213,7 +213,6 @@ class ApplicationServiceTest {
         List<ApplicationResponse> responses = applicationService.myApplications("me@mail.ru");
 
         assertEquals("yandex_hr", responses.get(0).getCompanyTelegram());
-        // без отдельного contactEmail берётся email владельца
         assertEquals("boss@mail.ru", responses.get(0).getCompanyContactEmail());
         assertNull(responses.get(1).getCompanyTelegram());
         assertNull(responses.get(1).getCompanyContactEmail());

@@ -89,7 +89,6 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, "Conflict", e.getMessage());
     }
 
-    // две одновременные вставки проскакивают проверку exists и упираются в уникальный ключ
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDto> handleDataIntegrity(DataIntegrityViolationException e) {
         log.debug("Нарушено ограничение БД", e);
