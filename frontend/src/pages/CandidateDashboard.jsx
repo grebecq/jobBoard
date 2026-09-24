@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../auth.jsx'
 import { applicationsApi } from '../api.js'
 import { applicationStatus, formatDate, telegramUrl } from '../format.js'
 
 export default function CandidateDashboard() {
-  const { user } = useAuth()
   const [apps, setApps] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -16,35 +14,39 @@ export default function CandidateDashboard() {
       .finally(() => setLoading(false))
   }, [])
 
-  const count = (status) => apps.filter((a) => a.status === status).length
+  const count = (...statuses) => apps.filter((a) => statuses.includes(a.status)).length
 
   return (
-    <section className="view wrap">
-      <div className="dash-head">
-        <div className="eyebrow">Соискатель · {user?.email}</div>
+    <div className="wrap">
+      <div className="page-head">
         <h1>Мои отклики</h1>
+        <p>Статусы обновляются, когда работодатель открывает отклик или отвечает на него.</p>
       </div>
 
-      {!loading && apps.length > 0 && (
-        <div className="stats">
-          <div className="stat accent"><div className="n">{apps.length}</div><div className="l">Всего откликов</div></div>
-          <div className="stat"><div className="n">{count('PENDING') + count('VIEWED')}</div><div className="l">Ждут ответа</div></div>
-          <div className="stat"><div className="n">{count('INVITED')}</div><div className="l">Приглашений</div></div>
-          <div className="stat"><div className="n">{count('REJECTED')}</div><div className="l">Отказов</div></div>
-        </div>
-      )}
-
-      <div className="panel">
-        <div className="panel-head"><h3>История откликов</h3></div>
-        {loading ? (
-          <div className="spinner" />
-        ) : apps.length === 0 ? (
-          <div className="center-msg">Здесь появятся ваши отклики. Найди вакансию и нажми «Откликнуться».</div>
-        ) : (
-          apps.map((a) => <ApplicationItem key={a.id} a={a} />)
+      <div className="stack">
+        {!loading && apps.length > 0 && (
+          <div className="summary">
+            <div><b>{apps.length}</b><span>всего</span></div>
+            <div><b>{count('PENDING', 'VIEWED')}</b><span>ждут ответа</span></div>
+            <div className="hot"><b>{count('INVITED')}</b><span>приглашений</span></div>
+            <div><b>{count('REJECTED')}</b><span>отказов</span></div>
+          </div>
         )}
+
+        <div className="sheet">
+          {loading ? (
+            <div className="spinner" />
+          ) : apps.length === 0 ? (
+            <div className="empty">
+              <p>Вы ещё никуда не откликались.</p>
+              <Link to="/vacancies" className="btn btn-primary">Смотреть вакансии</Link>
+            </div>
+          ) : (
+            apps.map((a) => <ApplicationItem key={a.id} a={a} />)
+          )}
+        </div>
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -53,24 +55,24 @@ function ApplicationItem({ a }) {
   const tg = telegramUrl(a.companyTelegram)
 
   return (
-    <div className="app-item">
-      <div className="app-row">
+    <div className="row">
+      <div className="row-main">
         <div>
-          <Link to={`/vacancy/${a.vacancyId}`} className="ti link">{a.vacancyTitle || 'Вакансия'}</Link>
-          <div className="ts">
-            {[a.companyName, a.vacancyCity, formatDate(a.createdAt)].filter(Boolean).join(' · ')}
+          <Link to={`/vacancy/${a.vacancyId}`} className="title">{a.vacancyTitle || 'Вакансия'}</Link>
+          <div className="sub">
+            {[a.companyName, a.vacancyCity, a.createdAt && 'отклик ' + formatDate(a.createdAt)].filter(Boolean).join(', ')}
           </div>
         </div>
-        <span className={'status ' + s.cls}>{s.label}</span>
+        <span className={'st ' + s.cls}>{s.label}</span>
       </div>
 
       {a.status === 'INVITED' && (
-        <div className="contact-box">
-          <div className="contact-title">🎉 Вас пригласили! Свяжитесь с работодателем:</div>
-          <div className="contact-actions">
-            {tg && <a className="btn btn-primary" href={tg} target="_blank" rel="noreferrer">✈️ Telegram @{a.companyTelegram}</a>}
+        <div className="invite">
+          <p>Вас пригласили. Напишите работодателю:</p>
+          <div className="actions">
+            {tg && <a className="btn btn-primary btn-sm" href={tg} target="_blank" rel="noreferrer">Telegram @{a.companyTelegram}</a>}
             {a.companyContactEmail && (
-              <a className="btn btn-ghost" href={`mailto:${a.companyContactEmail}`}>✉️ {a.companyContactEmail}</a>
+              <a className="btn btn-quiet btn-sm" href={`mailto:${a.companyContactEmail}`}>{a.companyContactEmail}</a>
             )}
           </div>
         </div>
@@ -78,14 +80,14 @@ function ApplicationItem({ a }) {
 
       {a.employerComment && (
         <div className="quote">
-          <div className="quote-l">Комментарий работодателя</div>
+          <small>Комментарий работодателя</small>
           {a.employerComment}
         </div>
       )}
 
       {a.coverLetter && (
         <details className="letter">
-          <summary>Моё сопроводительное письмо</summary>
+          <summary>Ваше сопроводительное письмо</summary>
           <p>{a.coverLetter}</p>
         </details>
       )}

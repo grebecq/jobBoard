@@ -99,6 +99,7 @@ export const dictionariesApi = {
 export const companiesApi = {
   mine: () => api.get('/api/companies/my').then((r) => r.data),
   create: (data) => api.post('/api/companies', data).then((r) => r.data),
+  count: () => api.get('/api/companies', { params: { size: 1 } }).then((r) => unwrapPage(r.data).total),
   update: (id, data) => api.put(`/api/companies/${id}`, data).then((r) => r.data),
 }
 

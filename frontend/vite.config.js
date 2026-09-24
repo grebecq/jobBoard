@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 // поэтому фронт всегда ходит по относительным путям и CORS не нужен.
 // В проде собранный фронт раздаётся самим Spring на 8080 — тот же origin.
 export default defineConfig({
+  base: process.env.VITE_BASE || '/',
   plugins: [react()],
   server: {
     port: 5173,

@@ -1,49 +1,52 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
+import Logo from './Logo.jsx'
 
 function toggleTheme() {
   const root = document.documentElement
   const cur = root.getAttribute('data-theme')
   const dark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches
-  root.setAttribute('data-theme', dark ? 'light' : 'dark')
+  const next = dark ? 'light' : 'dark'
+  root.setAttribute('data-theme', next)
+  try { localStorage.setItem('theme', next) } catch {}
 }
 
 export default function Navbar({ onAuth }) {
   const { user, isAuthenticated, logout } = useAuth()
-  const navigate = useNavigate()
 
   return (
-    <div className="nav">
-      <div className="nav-inner">
-        <div className="logo" onClick={() => navigate('/')}>
-          <div className="mark">В</div>
-          <span className="brand-name">Вакант</span>
-        </div>
+    <header className="top">
+      <div className="wrap top-in">
+        <Link to="/" className="wordmark" aria-label="Вакант, на главную"><Logo /></Link>
 
-        <div className="nav-links">
-          <NavLink to="/" end>Вакансии</NavLink>
+        <nav className="top-nav">
+          <NavLink to="/vacancies">Вакансии</NavLink>
           {user?.role === 'CANDIDATE' && <NavLink to="/my/applications">Мои отклики</NavLink>}
           {(user?.role === 'EMPLOYER' || user?.role === 'ADMIN') && (
             <NavLink to="/my/vacancies">Мои вакансии</NavLink>
           )}
+        </nav>
+
+        <div className="top-end">
+          <button className="icon-btn" onClick={toggleTheme} title="Светлая или тёмная тема" aria-label="Сменить тему">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <circle cx="12" cy="12" r="8" />
+              <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" />
+            </svg>
+          </button>
+          {isAuthenticated ? (
+            <>
+              <span className="who">{user.email}</span>
+              <button className="btn btn-quiet btn-sm" onClick={logout}>Выйти</button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-quiet btn-sm" onClick={() => onAuth('login')}>Войти</button>
+              <button className="btn btn-primary btn-sm" onClick={() => onAuth('register')}>Регистрация</button>
+            </>
+          )}
         </div>
-
-        <div className="nav-spacer" />
-        <button className="theme-toggle" onClick={toggleTheme} title="Сменить тему">◐</button>
-
-        {isAuthenticated ? (
-          <div className="nav-user">
-            <div className="avatar">{(user.email || '?')[0].toUpperCase()}</div>
-            <span>{user.email}</span>
-            <button className="btn btn-ghost" onClick={logout}>Выйти</button>
-          </div>
-        ) : (
-          <>
-            <button className="btn btn-ghost" onClick={() => onAuth('login')}>Войти</button>
-            <button className="btn btn-primary" onClick={() => onAuth('register')}>Регистрация</button>
-          </>
-        )}
       </div>
-    </div>
+    </header>
   )
 }

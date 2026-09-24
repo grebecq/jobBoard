@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import Home from './pages/Home.jsx'
+import Landing from './pages/Landing.jsx'
+import Splash from './components/Splash.jsx'
 import VacancyDetail from './pages/VacancyDetail.jsx'
 import CandidateDashboard from './pages/CandidateDashboard.jsx'
 import EmployerDashboard from './pages/EmployerDashboard.jsx'
@@ -24,38 +26,47 @@ export default function App() {
     <>
       <Navbar onAuth={setAuthOpen} />
 
-      <Routes>
-        <Route path="/" element={<Home onAuth={setAuthOpen} />} />
-        <Route path="/vacancy/:id" element={<VacancyDetail onAuth={setAuthOpen} />} />
-        <Route
-          path="/my/applications"
-          element={
-            <ProtectedRoute role="CANDIDATE">
-              <CandidateDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/my/vacancies"
-          element={
-            <ProtectedRoute role="EMPLOYER">
-              <EmployerDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/my/vacancies/:id/applications"
-          element={
-            <ProtectedRoute role="EMPLOYER">
-              <VacancyApplications />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <main>
+        <Routes>
+          <Route path="/" element={<Landing onAuth={setAuthOpen} />} />
+          <Route path="/vacancies" element={<Home onAuth={setAuthOpen} />} />
+          <Route path="/vacancy/:id" element={<VacancyDetail onAuth={setAuthOpen} />} />
+          <Route
+            path="/my/applications"
+            element={
+              <ProtectedRoute role="CANDIDATE">
+                <CandidateDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my/vacancies"
+            element={
+              <ProtectedRoute role="EMPLOYER">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my/vacancies/:id/applications"
+            element={
+              <ProtectedRoute role="EMPLOYER">
+                <VacancyApplications />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
 
-      <footer>© 2026 Вакант</footer>
+      <footer>
+        <div className="wrap">
+          <span>© 2026 Вакант</span>
+          <span>Работа в IT без посредников</span>
+        </div>
+      </footer>
 
+      <Splash />
       {authOpen && <AuthModal mode={authOpen} onClose={() => setAuthOpen(null)} />}
     </>
   )

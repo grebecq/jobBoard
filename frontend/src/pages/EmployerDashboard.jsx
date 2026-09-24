@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth.jsx'
+import { Link, useNavigate } from 'react-router-dom'
 import { useToast } from '../toast.jsx'
 import { vacanciesApi, companiesApi, apiMessage } from '../api.js'
 import { formatSalary } from '../format.js'
@@ -14,7 +13,6 @@ const EMPTY_VACANCY = {
 }
 
 export default function EmployerDashboard() {
-  const { user } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
   const [vacancies, setVacancies] = useState([])
@@ -41,7 +39,7 @@ export default function EmployerDashboard() {
     } catch (err) {
       setVacancies([])
       setCompanies([])
-      toast(apiMessage(err, 'Не удалось загрузить данные'))
+      toast(apiMessage(err, 'Данные не загрузились. Обновите страницу.'))
     } finally {
       setLoading(false)
     }
@@ -53,12 +51,12 @@ export default function EmployerDashboard() {
     setCompanyBusy(true)
     try {
       const created = await companiesApi.create(companyPayload(company))
-      toast('Компания создана ✓')
+      toast('Компания создана')
       setCompany(EMPTY_COMPANY)
       setCompanies((prev) => [...prev, created])
       setF((prev) => ({ ...prev, companyId: created.id }))
     } catch (err) {
-      toast(apiMessage(err, 'Не удалось создать компанию'))
+      toast(apiMessage(err, 'Компания не создалась. Проверьте поля.'))
     } finally {
       setCompanyBusy(false)
     }
@@ -70,8 +68,8 @@ export default function EmployerDashboard() {
       toast('Сначала создайте компанию')
       return
     }
-    const salaryFrom = f.salaryFrom ? Number(f.salaryFrom) : null
-    const salaryTo = f.salaryTo ? Number(f.salaryTo) : null
+    const salaryFrom = f.salaryFrom ? Number(String(f.salaryFrom).replace(/\D/g, '')) : null
+    const salaryTo = f.salaryTo ? Number(String(f.salaryTo).replace(/\D/g, '')) : null
     if (salaryFrom && salaryTo && salaryFrom > salaryTo) {
       toast('Зарплата «от» больше, чем «до»')
       return
@@ -92,11 +90,11 @@ export default function EmployerDashboard() {
         skillIds: f.skillIds,
         companyId: Number(f.companyId),
       })
-      toast('Вакансия опубликована ✓')
+      toast('Вакансия опубликована')
       setF({ ...EMPTY_VACANCY, companyId: f.companyId })
       load()
     } catch (err) {
-      toast(apiMessage(err, 'Не удалось опубликовать вакансию'))
+      toast(apiMessage(err, 'Вакансия не опубликовалась. Проверьте поля.'))
     } finally {
       setBusy(false)
     }
@@ -106,111 +104,114 @@ export default function EmployerDashboard() {
   const newApps = vacancies.reduce((n, v) => n + (v.newApplicationsCount || 0), 0)
 
   return (
-    <section className="view wrap">
-      <div className="dash-head">
-        <div className="eyebrow">Работодатель · {user?.email}</div>
+    <div className="wrap">
+      <div className="page-head">
         <h1>Мои вакансии</h1>
+        <p>Публикуйте вакансии и отвечайте кандидатам. Контакты компании увидят только приглашённые.</p>
       </div>
 
-      {!loading && vacancies.length > 0 && (
-        <div className="stats">
-          <div className="stat accent"><div className="n">{vacancies.length}</div><div className="l">Вакансий</div></div>
-          <div className="stat"><div className="n">{totalApps}</div><div className="l">Откликов всего</div></div>
-          <div className="stat"><div className="n">{newApps}</div><div className="l">Новых, не просмотрено</div></div>
-        </div>
-      )}
-
-      <div className="panel">
-        <div className="panel-head"><h3>Опубликованные вакансии</h3></div>
-        {loading ? (
-          <div className="spinner" />
-        ) : vacancies.length === 0 ? (
-          <div className="center-msg">Пока нет вакансий. Опубликуй первую в форме ниже.</div>
-        ) : (
-          vacancies.map((v) => (
-            <div className="trow" key={v.id}>
-              <div>
-                <div className="ti">{v.title}</div>
-                <div className="ts">{[v.company, v.city, formatSalary(v.salaryFrom, v.salaryTo)].filter(Boolean).join(' · ')}</div>
-              </div>
-              <span className={'status ' + (String(v.status).toUpperCase() === 'CLOSED' ? 'closed' : 'open')}>
-                {String(v.status).toUpperCase() === 'CLOSED' ? 'Закрыта' : 'Открыта'}
-              </span>
-              <button className="mini-btn" onClick={() => navigate(`/my/vacancies/${v.id}/applications`)}>
-                Отклики: {v.applicationsCount ?? 0}
-                {v.newApplicationsCount > 0 && <span className="dot-count">+{v.newApplicationsCount}</span>}
-              </button>
-            </div>
-          ))
+      <div className="stack">
+        {!loading && vacancies.length > 0 && (
+          <div className="summary">
+            <div><b>{vacancies.length}</b><span>вакансий</span></div>
+            <div><b>{totalApps}</b><span>откликов всего</span></div>
+            <div className={newApps > 0 ? 'hot' : ''}><b>{newApps}</b><span>новых, не просмотрены</span></div>
+          </div>
         )}
-      </div>
 
-      {!loading && companies.length > 0 && (
-        <div className="panel">
-          <div className="panel-head"><h3>Мои компании и контакты</h3></div>
-          {companies.map((c) => (
-            <CompanyRow key={c.id} company={c}
-              onSaved={(saved) => setCompanies((prev) => prev.map((x) => (x.id === saved.id ? saved : x)))} />
-          ))}
-        </div>
-      )}
+        <section className="sheet">
+          <div className="sheet-head"><h2>Опубликованные</h2></div>
+          {loading ? (
+            <div className="spinner" />
+          ) : vacancies.length === 0 ? (
+            <div className="empty">Вакансий пока нет. Заполните форму ниже, чтобы опубликовать первую.</div>
+          ) : (
+            vacancies.map((v) => {
+              const closed = String(v.status).toUpperCase() === 'CLOSED'
+              return (
+                <div className="row" key={v.id}>
+                  <div className="row-main">
+                    <div>
+                      <Link to={`/vacancy/${v.id}`} className="title">{v.title}</Link>
+                      <div className="sub">{[v.company, v.city, formatSalary(v.salaryFrom, v.salaryTo)].filter(Boolean).join(', ')}</div>
+                    </div>
+                    <span className={'st ' + (closed ? 'closed' : 'open')}>{closed ? 'Закрыта' : 'Открыта'}</span>
+                    <button className="apps-link" onClick={() => navigate(`/my/vacancies/${v.id}/applications`)}>
+                      <span className="num">Отклики {v.applicationsCount ?? 0}</span>
+                      {v.newApplicationsCount > 0 && <span className="new num">+{v.newApplicationsCount}</span>}
+                    </button>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </section>
 
-      {!loading && companies.length === 0 && (
-        <form className="panel" onSubmit={createCompany}>
-          <div className="panel-head"><h3>Сначала — компания</h3></div>
+        {!loading && companies.length > 0 && (
+          <section className="sheet">
+            <div className="sheet-head"><h2>Компании и контакты</h2></div>
+            {companies.map((c) => (
+              <CompanyRow key={c.id} company={c}
+                onSaved={(saved) => setCompanies((prev) => prev.map((x) => (x.id === saved.id ? saved : x)))} />
+            ))}
+          </section>
+        )}
+
+        {!loading && companies.length === 0 && (
+          <form className="sheet" onSubmit={createCompany}>
+            <div className="sheet-head"><h2>Расскажите о компании</h2></div>
+            <div className="form-grid">
+              <label className="field full"><span>Название</span>
+                <input className="inp" required value={company.name} onChange={setC('name')} placeholder="ООО «Ромашка»" /></label>
+              <label className="field full"><span>Сайт</span>
+                <input className="inp" value={company.website} onChange={setC('website')} placeholder="https://example.com" /></label>
+              <label className="field full"><span>О компании</span>
+                <textarea className="inp" value={company.description} onChange={setC('description')} placeholder="Чем занимаетесь, какой продукт делаете" /></label>
+              <ContactFields value={company} onChange={setC} />
+              <div className="full">
+                <button className="btn btn-primary" disabled={companyBusy}>{companyBusy ? 'Создаём…' : 'Создать компанию'}</button>
+              </div>
+            </div>
+          </form>
+        )}
+
+        <form className="sheet" onSubmit={publish}>
+          <div className="sheet-head"><h2>Новая вакансия</h2></div>
           <div className="form-grid">
-            <div className="full"><label className="field-l">Название компании</label>
-              <input className="inp" required value={company.name} onChange={setC('name')} placeholder="Яндекс" /></div>
-            <div className="full"><label className="field-l">Сайт</label>
-              <input className="inp" value={company.website} onChange={setC('website')} placeholder="https://example.com" /></div>
-            <div className="full"><label className="field-l">О компании</label>
-              <textarea className="inp" value={company.description} onChange={setC('description')} placeholder="Чем занимаетесь" /></div>
-            <ContactFields value={company} onChange={setC} />
+            <label className="field full"><span>Должность</span>
+              <input className="inp" required value={f.title} onChange={set('title')} placeholder="Java-разработчик (Spring Boot)" /></label>
+            <label className="field"><span>Компания</span>
+              <select className="inp" required value={f.companyId} onChange={set('companyId')} disabled={companies.length === 0}>
+                {companies.length === 0 && <option value="">Сначала создайте компанию</option>}
+                {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select></label>
+            <label className="field"><span>Направление</span>
+              <DictSelect required options={dict.specializations} value={f.specialization} onChange={set('specialization')} placeholder="Выберите" /></label>
+            <label className="field"><span>Грейд</span>
+              <DictSelect options={dict.grades} value={f.grade} onChange={set('grade')} placeholder="Любой" /></label>
+            <label className="field"><span>Опыт</span>
+              <DictSelect options={dict.experiences} value={f.experience} onChange={set('experience')} placeholder="Не важен" /></label>
+            <label className="field"><span>Формат работы</span>
+              <DictSelect required options={dict.workFormats} value={f.workFormat} onChange={set('workFormat')} /></label>
+            <label className="field"><span>Занятость</span>
+              <DictSelect required options={dict.employmentTypes} value={f.employmentType} onChange={set('employmentType')} /></label>
+            <label className="field full"><span>Город</span>
+              <input className="inp" value={f.city} onChange={set('city')} placeholder="Необязательно для удалёнки" /></label>
+            <label className="field"><span>Зарплата от, ₽</span>
+              <input className="inp num" inputMode="numeric" value={f.salaryFrom} onChange={set('salaryFrom')} placeholder="180 000" /></label>
+            <label className="field"><span>Зарплата до, ₽</span>
+              <input className="inp num" inputMode="numeric" value={f.salaryTo} onChange={set('salaryTo')} placeholder="250 000" /></label>
+            <div className="field full"><span>Стек <span className="hint">(по нему кандидаты находят вакансию)</span></span>
+              <SkillPicker value={f.skillIds} onChange={(ids) => setF({ ...f, skillIds: ids })} placeholder="Начните вводить: Java, Spring Boot, PostgreSQL" /></div>
+            <label className="field full"><span>Описание</span>
+              <textarea className="inp" rows={8} required value={f.description} onChange={set('description')} placeholder="Задачи, требования, условия" /></label>
             <div className="full">
-              <button className="btn btn-primary" disabled={companyBusy}>{companyBusy ? 'Создаём…' : 'Создать компанию'}</button>
+              <button className="btn btn-primary btn-lg" disabled={busy || companies.length === 0}>{busy ? 'Публикуем…' : 'Опубликовать вакансию'}</button>
             </div>
           </div>
         </form>
-      )}
-
-      <form className="panel" onSubmit={publish}>
-        <div className="panel-head"><h3>Новая вакансия</h3></div>
-        <div className="form-grid">
-          <div className="full"><label className="field-l">Название</label>
-            <input className="inp" required value={f.title} onChange={set('title')} placeholder="Java-разработчик (Spring Boot)" /></div>
-          <div><label className="field-l">Компания</label>
-            <select className="inp" required value={f.companyId} onChange={set('companyId')} disabled={companies.length === 0}>
-              {companies.length === 0 && <option value="">Сначала создайте компанию</option>}
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select></div>
-          <div><label className="field-l">Специализация</label>
-            <DictSelect required options={dict.specializations} value={f.specialization} onChange={set('specialization')} placeholder="Выберите направление" /></div>
-          <div><label className="field-l">Грейд</label>
-            <DictSelect options={dict.grades} value={f.grade} onChange={set('grade')} placeholder="Любой" /></div>
-          <div><label className="field-l">Опыт работы</label>
-            <DictSelect options={dict.experiences} value={f.experience} onChange={set('experience')} placeholder="Не важен" /></div>
-          <div><label className="field-l">Формат работы</label>
-            <DictSelect required options={dict.workFormats} value={f.workFormat} onChange={set('workFormat')} /></div>
-          <div><label className="field-l">Тип занятости</label>
-            <DictSelect required options={dict.employmentTypes} value={f.employmentType} onChange={set('employmentType')} /></div>
-          <div><label className="field-l">Город</label>
-            <input className="inp" value={f.city} onChange={set('city')} placeholder="Красноярск" /></div>
-          <div><label className="field-l">Зарплата от, ₽</label>
-            <input className="inp" inputMode="numeric" value={f.salaryFrom} onChange={set('salaryFrom')} placeholder="180000" /></div>
-          <div><label className="field-l">Зарплата до, ₽</label>
-            <input className="inp" inputMode="numeric" value={f.salaryTo} onChange={set('salaryTo')} placeholder="250000" /></div>
-          <div className="full"><label className="field-l">Стек и навыки <span className="hint">— по ним кандидаты находят вакансию</span></label>
-            <SkillPicker value={f.skillIds} onChange={(ids) => setF({ ...f, skillIds: ids })} placeholder="Начните вводить: Java, Spring Boot, PostgreSQL…" /></div>
-          <div className="full"><label className="field-l">Описание</label>
-            <textarea className="inp" required value={f.description} onChange={set('description')} placeholder="Что делать, что требуется, что предлагаете…" /></div>
-          <div className="full">
-            <button className="btn btn-primary" disabled={busy || companies.length === 0}>{busy ? 'Публикуем…' : 'Опубликовать вакансию'}</button>
-          </div>
-        </div>
-      </form>
-    </section>
+      </div>
+    </div>
   )
 }
 
@@ -237,11 +238,11 @@ function companyPayload(c) {
 function ContactFields({ value, onChange }) {
   return (
     <>
-      <div><label className="field-l">Telegram для связи</label>
-        <input className="inp" value={value.telegram || ''} onChange={onChange('telegram')} placeholder="@hr_company или t.me/hr_company" /></div>
-      <div><label className="field-l">Email для связи</label>
-        <input className="inp" type="email" value={value.contactEmail || ''} onChange={onChange('contactEmail')} placeholder="hr@company.ru" /></div>
-      <div className="full hint">Кандидат увидит эти контакты, только когда вы его пригласите. Без них покажем email вашего аккаунта.</div>
+      <label className="field"><span>Telegram для связи</span>
+        <input className="inp" value={value.telegram || ''} onChange={onChange('telegram')} placeholder="@hr_company" /></label>
+      <label className="field"><span>Email для связи</span>
+        <input className="inp" type="email" value={value.contactEmail || ''} onChange={onChange('contactEmail')} placeholder="hr@company.ru" /></label>
+      <p className="full hint">Кандидат увидит эти контакты, только когда вы его пригласите. Если не заполнить, покажем email вашего аккаунта.</p>
     </>
   )
 }
@@ -261,28 +262,26 @@ function CompanyRow({ company, onSaved }) {
       onSaved(saved)
       setForm(saved)
       setEditing(false)
-      toast('Контакты сохранены ✓')
+      toast('Контакты сохранены')
     } catch (err) {
-      toast(apiMessage(err, 'Не удалось сохранить'))
+      toast(apiMessage(err, 'Контакты не сохранились. Проверьте поля.'))
     } finally {
       setBusy(false)
     }
   }
 
-  const hasContacts = company.telegram || company.contactEmail
+  const contacts = [company.telegram && '@' + company.telegram, company.contactEmail].filter(Boolean)
 
   return (
-    <div className="app-item">
-      <div className="app-row">
+    <div className="row">
+      <div className="row-main">
         <div>
-          <div className="ti">{company.name}</div>
-          <div className="ts">
-            {hasContacts
-              ? [company.telegram && '@' + company.telegram, company.contactEmail].filter(Boolean).join(' · ')
-              : '⚠️ Контакты не указаны — кандидаты увидят только email аккаунта'}
+          <div className="title">{company.name}</div>
+          <div className={'sub' + (contacts.length ? '' : ' warn-text')}>
+            {contacts.length ? contacts.join(', ') : 'Контакты не указаны, кандидаты увидят только email аккаунта'}
           </div>
         </div>
-        <button className="mini-btn" onClick={() => { setForm(company); setEditing(!editing) }}>
+        <button className="btn btn-quiet btn-sm" onClick={() => { setForm(company); setEditing(!editing) }}>
           {editing ? 'Отмена' : 'Изменить контакты'}
         </button>
       </div>
