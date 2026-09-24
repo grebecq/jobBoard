@@ -6,17 +6,7 @@ export function formatSalary(from, to) {
   return 'з/п не указана'
 }
 
-const EMP_LABELS = {
-  FULL_TIME: 'Полная занятость',
-  PART_TIME: 'Частичная занятость',
-  REMOTE: 'Удалённая работа',
-  INTERNSHIP: 'Стажировка',
-  CONTRACT: 'Контракт',
-}
-export function employmentLabel(type) {
-  if (!type) return 'Занятость'
-  return EMP_LABELS[String(type).toUpperCase()] || type
-}
+// подписи специализаций, грейдов и т.п. — в dictionaries.jsx (приходят с бэка)
 
 export const APPLICATION_STATUS = {
   PENDING:  { cls: 'pending',  label: 'Отправлен' },

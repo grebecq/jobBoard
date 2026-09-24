@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { vacanciesApi } from '../api.js'
 import { useApplyFlow } from '../useApplyFlow.jsx'
-import { formatSalary, employmentLabel } from '../format.js'
+import { formatSalary } from '../format.js'
+import { useDictionaries } from '../dictionaries.jsx'
 
 export default function VacancyDetail({ onAuth }) {
   const { id } = useParams()
@@ -11,6 +12,7 @@ export default function VacancyDetail({ onAuth }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const applyFlow = useApplyFlow(onAuth)
+  const { label } = useDictionaries()
 
   useEffect(() => {
     setLoading(true)
@@ -35,15 +37,28 @@ export default function VacancyDetail({ onAuth }) {
         <div className="dcard">
           <h1>{v.title}</h1>
           <div className="dmeta">
-            <span>{v.company}</span><span>·</span><span>📍 {v.city}</span><span>·</span>
-            <span className={'badge ' + (v.remote ? 'remote' : 'emp')}>{employmentLabel(v.employmentType)}</span>
+            <span>{v.company}</span>
+            {v.city && <><span>·</span><span>📍 {v.city}</span></>}
+            {v.grade && <span className="badge grade">{label('grade', v.grade)}</span>}
+            {v.workFormat && <span className={'badge ' + (v.remote ? 'remote' : 'emp')}>{label('workFormat', v.workFormat)}</span>}
           </div>
+          <dl className="facts">
+            {[
+              ['Специализация', label('specialization', v.specialization)],
+              ['Грейд', label('grade', v.grade)],
+              ['Опыт', label('experience', v.experience)],
+              ['Формат работы', label('workFormat', v.workFormat)],
+              ['Занятость', label('employmentType', v.employmentType)],
+            ].filter(([, val]) => val).map(([k, val]) => (
+              <div key={k}><dt>{k}</dt><dd>{val}</dd></div>
+            ))}
+          </dl>
           {v.description
             ? <p style={{ color: 'var(--muted)', whiteSpace: 'pre-line' }}>{v.description}</p>
             : <p style={{ color: 'var(--muted)' }}>Описание не указано.</p>}
           {v.skills?.length > 0 && (
             <div className="dsection">
-              <h3>Навыки</h3>
+              <h3>Стек и навыки</h3>
               <div className="vac-tags">{v.skills.map((s, i) => <span className="t" key={i}>{s}</span>)}</div>
             </div>
           )}
