@@ -2,7 +2,8 @@ import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || ''
 
-export const api = axios.create({ baseURL: BASE_URL })
+// списки фильтров уходят повтором параметра (?grade=JUNIOR&grade=MIDDLE) — так их ждёт Spring
+export const api = axios.create({ baseURL: BASE_URL, paramsSerializer: { indexes: null } })
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
@@ -41,17 +42,21 @@ export const authApi = {
 
 export function mapVacancy(v) {
   if (!v) return v
-  const empRaw = v.employmentType || v.type || ''
   return {
     id: v.id,
-    title: v.title || v.name || 'Вакансия',
-    company: v.companyName || (v.company && v.company.name) || v.company || '—',
-    city: v.city || v.location || '—',
-    salaryFrom: v.salaryFrom ?? v.minSalary ?? null,
-    salaryTo: v.salaryTo ?? v.maxSalary ?? null,
-    employmentType: empRaw,
-    remote: String(empRaw).toUpperCase().includes('REMOTE') || /удал/i.test(empRaw),
-    status: v.status || 'OPEN',
+    title: v.title || 'Вакансия',
+    company: v.companyName || '—',
+    companyId: v.companyId,
+    city: v.city || '',
+    salaryFrom: v.salaryFrom ?? null,
+    salaryTo: v.salaryTo ?? null,
+    employmentType: v.employmentType || null,
+    specialization: v.specialization || null,
+    grade: v.grade || null,
+    experience: v.experience || null,
+    workFormat: v.workFormat || null,
+    remote: v.workFormat === 'REMOTE',
+    status: v.status || 'ACTIVE',
     description: v.description || '',
     skills: (v.skillNames || v.skills || []).map((s) => (typeof s === 'string' ? s : s.name)),
     createdAt: v.createdAt || null,
@@ -65,7 +70,8 @@ function unwrapPage(data) {
   if (Array.isArray(data)) return { items: data, total: data.length }
   const items = data.content || data.items || []
   const total = data.page?.totalElements ?? data.totalElements ?? items.length
-  return { items, total }
+  const pages = data.page?.totalPages ?? data.totalPages ?? 1
+  return { items, total, pages }
 }
 
 export const vacanciesApi = {
@@ -77,7 +83,7 @@ export const vacanciesApi = {
   search: (params = {}) =>
     api.get('/api/vacancies/search', { params }).then((r) => {
       const p = unwrapPage(r.data)
-      return { items: p.items.map(mapVacancy), total: p.total }
+      return { items: p.items.map(mapVacancy), total: p.total, pages: p.pages }
     }),
   get: (id) => api.get(`/api/vacancies/${id}`).then((r) => mapVacancy(r.data)),
   create: (data) => api.post('/api/vacancies', data).then((r) => r.data),
@@ -86,6 +92,10 @@ export const vacanciesApi = {
       const p = unwrapPage(r.data)
       return { items: p.items.map(mapVacancy), total: p.total }
     }),
+}
+
+export const dictionariesApi = {
+  get: () => api.get('/api/dictionaries').then((r) => r.data),
 }
 
 export const companiesApi = {

@@ -1,6 +1,7 @@
 package fedoseev.jobboard.controller;
 
 import fedoseev.jobboard.dto.request.VacancyRequest;
+import fedoseev.jobboard.dto.request.VacancySearchRequest;
 import fedoseev.jobboard.dto.response.VacancyResponse;
 import fedoseev.jobboard.service.VacancyService;
 import fedoseev.jobboard.util.SecurityUtils;
@@ -50,14 +51,13 @@ public class VacancyController {
         return vacancyService.getVacancyById(id);
     }
 
-    @Operation(summary = "Поиск вакансий", description = "Динамические фильтры: город, минимальная зарплата, тип занятости. Любой можно не задавать.")
+    @Operation(summary = "Поиск вакансий",
+            description = "Только активные вакансии. Фильтры: q (текст), city, minSalary, onlyWithSalary, "
+                    + "specialization, grade, experience, workFormat, employmentType, skill (id), companyId. "
+                    + "Списки передаются повтором параметра: ?grade=JUNIOR&grade=MIDDLE. По умолчанию сначала новые.")
     @GetMapping("/search")
-    public Page<VacancyResponse> searchVacancies(
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) Integer minSalary,
-            @RequestParam(required = false) String employmentType,
-            Pageable pageable ){
-        return vacancyService.searchVacancies(city, minSalary, employmentType, pageable);
+    public Page<VacancyResponse> searchVacancies(@ModelAttribute VacancySearchRequest filter, Pageable pageable) {
+        return vacancyService.searchVacancies(filter, pageable);
     }
 
 }

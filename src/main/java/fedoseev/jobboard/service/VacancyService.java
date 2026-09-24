@@ -1,10 +1,12 @@
 package fedoseev.jobboard.service;
 
 import fedoseev.jobboard.dto.request.VacancyRequest;
+import fedoseev.jobboard.dto.request.VacancySearchRequest;
 import fedoseev.jobboard.dto.response.VacancyResponse;
 import fedoseev.jobboard.entity.Company;
 import fedoseev.jobboard.entity.Skill;
 import fedoseev.jobboard.entity.Vacancy;
+import fedoseev.jobboard.exception.BadRequestException;
 import fedoseev.jobboard.exception.ResourceNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import fedoseev.jobboard.repository.ApplicationRepository;
@@ -18,9 +20,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -49,11 +54,18 @@ public class VacancyService {
         vacancy.setTitle(request.getTitle());
         vacancy.setCity(request.getCity());
         vacancy.setEmploymentType(request.getEmploymentType());
+        vacancy.setSpecialization(request.getSpecialization());
+        vacancy.setGrade(request.getGrade());
+        vacancy.setExperience(request.getExperience());
+        vacancy.setWorkFormat(request.getWorkFormat());
         vacancy.setSalaryFrom(request.getSalaryFrom());
         vacancy.setCompany(company);
 
         if (request.getSkillIds() != null && !request.getSkillIds().isEmpty()) {
             List<Skill> skills = skillRepository.findAllById(request.getSkillIds());
+            if (skills.size() != request.getSkillIds().size()) {
+                throw new BadRequestException("Часть навыков не найдена в справочнике");
+            }
             vacancy.setSkills(new HashSet<>(skills));
         }
 
@@ -105,6 +117,10 @@ public class VacancyService {
         response.setSalaryTo(vacancy.getSalaryTo());
         response.setCity(vacancy.getCity());
         response.setEmploymentType(vacancy.getEmploymentType());
+        response.setSpecialization(vacancy.getSpecialization());
+        response.setGrade(vacancy.getGrade());
+        response.setExperience(vacancy.getExperience());
+        response.setWorkFormat(vacancy.getWorkFormat());
         response.setStatus(vacancy.getStatus());
         response.setCreatedAt(vacancy.getCreatedAt());
         response.setUpdatedAt(vacancy.getUpdatedAt());
@@ -113,22 +129,37 @@ public class VacancyService {
         response.setSkillNames(
                 vacancy.getSkills().stream()
                         .map(Skill::getName)
-                        .collect(Collectors.toSet())
+                        .sorted(String.CASE_INSENSITIVE_ORDER)
+                        .collect(Collectors.toCollection(LinkedHashSet::new))
         );
         return response;
     }
 
     @Transactional(readOnly = true)
-    public Page<VacancyResponse> searchVacancies(String city,
-                                                 Integer minSalary,
-                                                 String employmentType,
-                                                 Pageable pageable
-    ){
+    public Page<VacancyResponse> searchVacancies(VacancySearchRequest filter, Pageable pageable) {
         Specification<Vacancy> spec = Specification.allOf(
-                Specifications.hasCity(city),
-                Specifications.salaryFromAtLeast(minSalary),
-                Specifications.hasEmploymentType(employmentType)
+                Specifications.isActive(),
+                Specifications.textContains(filter.getQ()),
+                Specifications.hasCity(filter.getCity()),
+                Specifications.salaryAtLeast(filter.getMinSalary(), !filter.isOnlyWithSalary()),
+                Specifications.withSalaryOnly(filter.isOnlyWithSalary()),
+                Specifications.fieldIn("specialization", filter.getSpecialization()),
+                Specifications.fieldIn("grade", filter.getGrade()),
+                Specifications.fieldIn("experience", filter.getExperience()),
+                Specifications.fieldIn("workFormat", filter.getWorkFormat()),
+                Specifications.fieldIn("employmentType", filter.getEmploymentType()),
+                Specifications.hasAnySkill(filter.getSkill()),
+                Specifications.ofCompany(filter.getCompanyId())
         );
+
+        if ("salary".equalsIgnoreCase(filter.getOrder())) {
+            spec = spec.and(Specifications.orderBySalaryDesc());
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        } else if (pageable.getSort().isUnsorted()) {
+            // без явной сортировки — сначала свежие, как на hh
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")));
+        }
 
         return vacancyRepository.findAll(spec, pageable)
                 .map(this::mapToResponse);

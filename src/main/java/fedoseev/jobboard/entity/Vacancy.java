@@ -1,6 +1,11 @@
 package fedoseev.jobboard.entity;
 
+import fedoseev.jobboard.enums.EmploymentType;
+import fedoseev.jobboard.enums.Experience;
+import fedoseev.jobboard.enums.Grade;
+import fedoseev.jobboard.enums.Specialization;
 import fedoseev.jobboard.enums.VacancyStatus;
+import fedoseev.jobboard.enums.WorkFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,8 +42,22 @@ public class Vacancy {
 
     private String city;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "employment_type")
-    private String employmentType;
+    private EmploymentType employmentType;
+
+    @Enumerated(EnumType.STRING)
+    private Specialization specialization;
+
+    @Enumerated(EnumType.STRING)
+    private Grade grade;
+
+    @Enumerated(EnumType.STRING)
+    private Experience experience;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "work_format")
+    private WorkFormat workFormat;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
