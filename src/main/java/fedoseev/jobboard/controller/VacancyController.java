@@ -3,6 +3,7 @@ package fedoseev.jobboard.controller;
 import fedoseev.jobboard.dto.request.VacancyRequest;
 import fedoseev.jobboard.dto.response.VacancyResponse;
 import fedoseev.jobboard.service.VacancyService;
+import fedoseev.jobboard.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,7 +28,7 @@ public class VacancyController {
     @PostMapping
     public VacancyResponse createVacancy(@Valid @RequestBody VacancyRequest vacancyRequest,
                                          Authentication authentication){
-        return vacancyService.createdVacancy(vacancyRequest, authentication.getName(), isAdmin(authentication));
+        return vacancyService.createdVacancy(vacancyRequest, authentication.getName(), SecurityUtils.isAdmin(authentication));
 
     }
 
@@ -57,11 +58,6 @@ public class VacancyController {
             @RequestParam(required = false) String employmentType,
             Pageable pageable ){
         return vacancyService.searchVacancies(city, minSalary, employmentType, pageable);
-    }
-
-    private boolean isAdmin(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
 }

@@ -34,6 +34,8 @@ public class Candidate {
 
     private String city;
 
+    private String telegram;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

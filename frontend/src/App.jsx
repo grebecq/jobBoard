@@ -6,6 +6,7 @@ import Home from './pages/Home.jsx'
 import VacancyDetail from './pages/VacancyDetail.jsx'
 import CandidateDashboard from './pages/CandidateDashboard.jsx'
 import EmployerDashboard from './pages/EmployerDashboard.jsx'
+import VacancyApplications from './pages/VacancyApplications.jsx'
 import { useAuth } from './auth.jsx'
 
 function ProtectedRoute({ role, children }) {
@@ -39,6 +40,14 @@ export default function App() {
           element={
             <ProtectedRoute role="EMPLOYER">
               <EmployerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my/vacancies/:id/applications"
+          element={
+            <ProtectedRoute role="EMPLOYER">
+              <VacancyApplications />
             </ProtectedRoute>
           }
         />

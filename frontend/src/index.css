@@ -148,6 +148,7 @@ h1,h2,h3,.brand-name{font-family:"Manrope","Golos Text",sans-serif;letter-spacin
 .trow .ts{color:var(--muted);font-size:13px;margin-top:2px}
 .status{font-size:12.5px;font-weight:600;padding:4px 11px;border-radius:20px;white-space:nowrap}
 .status.pending{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.status.viewed{background:color-mix(in srgb,var(--violet) 14%,transparent);color:var(--violet)}
 .status.invited{background:var(--brand-soft);color:var(--brand-strong)}
 .status.rejected{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
 .status.open{background:var(--brand-soft);color:var(--brand-strong)}
@@ -180,6 +181,45 @@ textarea.inp{resize:vertical;min-height:84px}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 footer{border-top:1px solid var(--border);color:var(--faint);font-size:13px;text-align:center;padding:26px 20px}
+
+/* модалка отклика и подсказки */
+.modal.wide{max-width:520px}
+.hint{color:var(--faint);font-size:12.5px;font-weight:400}
+.hint.right{text-align:right;margin-top:4px}
+.note{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--muted)}
+.note.ok{background:var(--brand-soft);border-color:transparent;color:var(--brand-strong)}
+
+/* отклики: карточки в кабинетах */
+.app-item{border-bottom:1px solid var(--border)}
+.app-item:last-child{border-bottom:none}
+.app-item.fresh{box-shadow:inset 3px 0 0 var(--warn)}
+.app-row{display:flex;align-items:center;gap:14px;padding:15px 20px}
+.app-row>div:first-child{flex:1;min-width:0}
+.app-row.clickable{cursor:pointer}
+.app-row.clickable:hover{background:var(--surface-2)}
+.app-row .ti{font-weight:600;font-size:15px}
+.app-row .ts{color:var(--muted);font-size:13px;margin-top:2px}
+.ti.link:hover{color:var(--brand-strong)}
+.chev{color:var(--faint);font-size:14px}
+.app-body{padding:4px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.app-item>.contact-box,.app-item>.quote,.app-item>.letter{margin:0 20px 14px}
+.contact-box{background:var(--brand-soft);border-radius:12px;padding:14px 16px}
+.contact-title{font-weight:600;color:var(--brand-strong);margin-bottom:10px}
+.contact-actions{display:flex;flex-wrap:wrap;gap:8px}
+.contact-actions .btn{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.btn-ghost.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.quote{border-left:3px solid var(--border-strong);padding:4px 0 4px 12px;color:var(--text);white-space:pre-line;font-size:14px}
+.quote-l{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);font-weight:600;margin-bottom:4px}
+.letter summary{cursor:pointer;color:var(--muted);font-size:13px}
+.letter p{white-space:pre-line;color:var(--muted);margin:8px 0 0}
+.form-grid.inset{padding:0 20px 20px}
+.dot-count{background:var(--warn);color:#fff;border-radius:10px;padding:0 6px;margin-left:6px;font-size:11.5px;font-weight:700}
+
+.tabs{display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tabs button{border:none;background:none;padding:7px 12px;border-radius:8px;font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.tabs button:hover{background:var(--surface-2)}
+.tabs button.active{background:var(--brand-soft);color:var(--brand-strong)}
+.tab-n{font-weight:500;opacity:.7;margin-left:3px}
 
 @media (max-width:860px){
   .listing{grid-template-columns:1fr}

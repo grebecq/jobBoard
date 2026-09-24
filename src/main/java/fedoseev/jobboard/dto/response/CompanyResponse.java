@@ -22,6 +22,10 @@ public class CompanyResponse {
 
     private String website;
 
+    private String contactEmail;
+
+    private String telegram;
+
     private Long ownerId;
 
     private LocalDateTime createdAt;

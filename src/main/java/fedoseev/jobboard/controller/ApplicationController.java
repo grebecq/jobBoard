@@ -1,8 +1,12 @@
 package fedoseev.jobboard.controller;
 
 import fedoseev.jobboard.dto.request.ApplicationRequest;
+import fedoseev.jobboard.dto.request.ApplicationStatusRequest;
+import fedoseev.jobboard.dto.request.ApplyRequest;
 import fedoseev.jobboard.dto.response.ApplicationResponse;
+import fedoseev.jobboard.dto.response.EmployerApplicationResponse;
 import fedoseev.jobboard.service.ApplicationService;
+import fedoseev.jobboard.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,16 +35,45 @@ public class ApplicationController {
         return applicationService.createdApplication(request);
     }
 
-    @Operation(summary = "Откликнуться на вакансию", description = "Текущий пользователь откликается на вакансию по её id.")
+    @Operation(summary = "Откликнуться на вакансию",
+            description = "Текущий кандидат откликается на активную вакансию. Тело необязательно: {\"coverLetter\": \"...\"}.")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/apply/{vacancyId}")
-    public ApplicationResponse apply(@PathVariable Long vacancyId, Authentication authentication) {
-        return applicationService.applyToVacancy(authentication.getName(), vacancyId);
+    public ApplicationResponse apply(@PathVariable Long vacancyId,
+                                     @RequestBody(required = false) @Valid ApplyRequest request,
+                                     Authentication authentication) {
+        String coverLetter = request == null ? null : request.getCoverLetter();
+        return applicationService.applyToVacancy(authentication.getName(), vacancyId, coverLetter);
     }
 
-    @Operation(summary = "Мои отклики", description = "Отклики текущего пользователя.")
+    @Operation(summary = "Мои отклики",
+            description = "Отклики текущего кандидата, новые сверху. При статусе INVITED в ответе есть контакты работодателя.")
     @GetMapping("/my")
     public List<ApplicationResponse> myApplications(Authentication authentication) {
         return applicationService.myApplications(authentication.getName());
+    }
+
+    @Operation(summary = "Отклики на вакансию", description = "Только владелец вакансии (или ADMIN). С контактами кандидатов.")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
+    @GetMapping("/vacancy/{vacancyId}")
+    public List<EmployerApplicationResponse> vacancyApplications(@PathVariable Long vacancyId, Authentication authentication) {
+        return applicationService.vacancyApplications(vacancyId, authentication.getName(), SecurityUtils.isAdmin(authentication));
+    }
+
+    @Operation(summary = "Открыть отклик", description = "Для работодателя. Новый отклик (PENDING) при этом становится VIEWED.")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
+    @GetMapping("/{id}")
+    public EmployerApplicationResponse getApplication(@PathVariable Long id, Authentication authentication) {
+        return applicationService.getForEmployer(id, authentication.getName(), SecurityUtils.isAdmin(authentication));
+    }
+
+    @Operation(summary = "Сменить статус отклика",
+            description = "VIEWED / INVITED / REJECTED, с необязательным комментарием для кандидата. При INVITED кандидат увидит контакты компании.")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
+    @PatchMapping("/{id}/status")
+    public EmployerApplicationResponse changeStatus(@PathVariable Long id,
+                                                    @RequestBody @Valid ApplicationStatusRequest request,
+                                                    Authentication authentication) {
+        return applicationService.changeStatus(id, request, authentication.getName(), SecurityUtils.isAdmin(authentication));
     }
 }
