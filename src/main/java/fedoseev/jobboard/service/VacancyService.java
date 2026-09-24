@@ -7,8 +7,10 @@ import fedoseev.jobboard.entity.Skill;
 import fedoseev.jobboard.entity.Vacancy;
 import fedoseev.jobboard.exception.ResourceNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
+import fedoseev.jobboard.repository.ApplicationRepository;
 import fedoseev.jobboard.repository.CompanyRepository;
 import fedoseev.jobboard.repository.SkillRepository;
+import fedoseev.jobboard.repository.VacancyApplicationStats;
 import fedoseev.jobboard.repository.VacancyRepository;
 import fedoseev.jobboard.specifications.Specifications;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -28,6 +32,7 @@ public class VacancyService {
     private final  VacancyRepository vacancyRepository;
     private final SkillRepository skillRepository;
     private final  CompanyRepository companyRepository;
+    private final ApplicationRepository applicationRepository;
 
     @Transactional
     public VacancyResponse createdVacancy(VacancyRequest request, String email, boolean isAdmin){
@@ -65,8 +70,23 @@ public class VacancyService {
 
     @Transactional(readOnly = true)
     public Page<VacancyResponse> getMyVacancies(String email, Pageable pageable){
-        return vacancyRepository.findByCompany_Owner_Email(email, pageable)
+        Page<VacancyResponse> page = vacancyRepository.findByCompany_Owner_Email(email, pageable)
                 .map(this::mapToResponse);
+        if (page.isEmpty()) {
+            return page;
+        }
+
+        // один group-by запрос на всю страницу вместо count() на каждую вакансию
+        List<Long> ids = page.getContent().stream().map(VacancyResponse::getId).toList();
+        Map<Long, VacancyApplicationStats> stats = applicationRepository.statsByVacancyIds(ids).stream()
+                .collect(Collectors.toMap(VacancyApplicationStats::getVacancyId, Function.identity()));
+
+        page.forEach(response -> {
+            VacancyApplicationStats s = stats.get(response.getId());
+            response.setApplicationsCount(s == null ? 0L : s.getTotal());
+            response.setNewApplicationsCount(s == null ? 0L : s.getFresh());
+        });
+        return page;
     }
 
     @Transactional(readOnly = true)

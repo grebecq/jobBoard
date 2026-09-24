@@ -1,5 +1,6 @@
 package fedoseev.jobboard.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -21,6 +22,14 @@ public class CompanyRequest {
     private String logoUrl;
 
     private String website;
+
+    @Email(message = "Некорректный email для связи")
+    @Size(max = 255)
+    private String contactEmail;
+
+    // ник, @ник или ссылка t.me — нормализуется в сервисе
+    @Size(max = 64)
+    private String telegram;
 
 
 

@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import VacancyCard from '../components/VacancyCard.jsx'
-import { vacanciesApi, applicationsApi } from '../api.js'
-import { useAuth } from '../auth.jsx'
-import { useToast } from '../toast.jsx'
+import { vacanciesApi } from '../api.js'
+import { useApplyFlow } from '../useApplyFlow.jsx'
 
 export default function Home({ onAuth }) {
   const [items, setItems] = useState([])
@@ -13,8 +12,7 @@ export default function Home({ onAuth }) {
   const [city, setCity] = useState('')
   const [minSalary, setMinSalary] = useState('')
 
-  const { isAuthenticated } = useAuth()
-  const toast = useToast()
+  const applyFlow = useApplyFlow(onAuth)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -38,19 +36,6 @@ export default function Home({ onAuth }) {
   }, [city, minSalary, title])
 
   useEffect(() => { load() }, [])
-
-  async function onApply(v) {
-    if (!isAuthenticated) { onAuth('login'); return }
-    try {
-      await applicationsApi.apply(v.id)
-      toast('Отклик отправлен ✓')
-    } catch (e) {
-      const st = e?.response?.status
-      if (st === 409) toast('Вы уже откликались на эту вакансию')
-      else if (st === 403) toast('Откликаться могут только соискатели')
-      else toast('Не удалось отправить отклик')
-    }
-  }
 
   return (
     <section className="view">
@@ -106,12 +91,16 @@ export default function Home({ onAuth }) {
               <div className="center-msg">Ничего не нашлось. Попробуй изменить фильтры.</div>
             ) : (
               <div className="cards">
-                {items.map((v) => <VacancyCard key={v.id} v={v} onApply={onApply} />)}
+                {items.map((v) => (
+                  <VacancyCard key={v.id} v={v} onApply={applyFlow.start}
+                    applied={applyFlow.isApplied(v.id)} canApply={applyFlow.canApply} />
+                ))}
               </div>
             )}
           </div>
         </div>
       </div>
+      {applyFlow.modal}
     </section>
   )
 }

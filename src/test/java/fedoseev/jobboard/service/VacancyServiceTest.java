@@ -6,6 +6,7 @@ import fedoseev.jobboard.entity.Company;
 import fedoseev.jobboard.entity.User;
 import fedoseev.jobboard.entity.Vacancy;
 import fedoseev.jobboard.exception.ResourceNotFoundException;
+import fedoseev.jobboard.repository.ApplicationRepository;
 import fedoseev.jobboard.repository.CompanyRepository;
 import fedoseev.jobboard.repository.SkillRepository;
 import fedoseev.jobboard.repository.VacancyRepository;
@@ -31,6 +32,8 @@ class VacancyServiceTest {
     private SkillRepository skillRepository;
     @Mock
     private CompanyRepository companyRepository;
+    @Mock
+    private ApplicationRepository applicationRepository;
 
     @InjectMocks
     private VacancyService vacancyService;

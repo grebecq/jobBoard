@@ -2,6 +2,7 @@ package fedoseev.jobboard.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +87,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicate(DuplicateResourceException e) {
         return build(HttpStatus.CONFLICT, "Conflict", e.getMessage());
+    }
+
+    // две одновременные вставки проскакивают проверку exists и упираются в уникальный ключ
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDto> handleDataIntegrity(DataIntegrityViolationException e) {
+        log.debug("Нарушено ограничение БД", e);
+        return build(HttpStatus.CONFLICT, "Conflict", "Запись уже существует или конфликтует с другими данными");
     }
 
     @ExceptionHandler(BadRequestException.class)

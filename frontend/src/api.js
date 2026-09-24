@@ -55,6 +55,9 @@ export function mapVacancy(v) {
     description: v.description || '',
     skills: (v.skillNames || v.skills || []).map((s) => (typeof s === 'string' ? s : s.name)),
     createdAt: v.createdAt || null,
+    // есть только в /api/vacancies/my
+    applicationsCount: v.applicationsCount ?? null,
+    newApplicationsCount: v.newApplicationsCount ?? null,
   }
 }
 
@@ -88,11 +91,18 @@ export const vacanciesApi = {
 export const companiesApi = {
   mine: () => api.get('/api/companies/my').then((r) => r.data),
   create: (data) => api.post('/api/companies', data).then((r) => r.data),
+  update: (id, data) => api.put(`/api/companies/${id}`, data).then((r) => r.data),
 }
 
 export const applicationsApi = {
-  apply: (vacancyId) => api.post(`/api/applications/apply/${vacancyId}`).then((r) => r.data),
+  apply: (vacancyId, coverLetter) =>
+    api.post(`/api/applications/apply/${vacancyId}`, { coverLetter: coverLetter || null }).then((r) => r.data),
   mine: () => api.get('/api/applications/my').then((r) => r.data),
+  // кабинет работодателя
+  forVacancy: (vacancyId) => api.get(`/api/applications/vacancy/${vacancyId}`).then((r) => r.data),
+  open: (id) => api.get(`/api/applications/${id}`).then((r) => r.data),
+  setStatus: (id, status, comment) =>
+    api.patch(`/api/applications/${id}/status`, { status, comment: comment || null }).then((r) => r.data),
 }
 
 export { BASE_URL }

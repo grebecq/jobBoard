@@ -35,14 +35,14 @@ npm run dev
 
 ## Что уже работает с реальным API
 
-Регистрация/логин/`me`, список/поиск/страница вакансий, публикация вакансии
-(нужен существующий `companyId`), JWT в каждом запросе, роли `CANDIDATE`/`EMPLOYER`/`ADMIN`.
+Регистрация/логин/`me`, список/поиск/страница вакансий, JWT в каждом запросе, роли `CANDIDATE`/`EMPLOYER`/`ADMIN`.
 
-## Доработки бэкенда (чтобы кабинеты стали «живыми»)
-
-Списки в кабинетах пока демо. Для реальных данных нужно: связь `User → Candidate`,
-владелец у вакансии (`Vacancy → User`), эндпоинты `GET /api/applications/my`,
-`GET /api/vacancies/my`.
+**Воронка откликов:**
+- кандидат откликается с сопроводительным письмом, видит статус (отправлен → просмотрен → приглашение/отказ)
+  и комментарий работодателя;
+- работодатель видит счётчики откликов, открывает отклик (он становится «просмотрен»), приглашает или отказывает;
+- переписки внутри сервиса нет: при приглашении кандидат получает Telegram и email компании,
+  работодатель видит контакты кандидата сразу.
 
 ## Структура
 
@@ -53,7 +53,8 @@ src/
   toast.jsx         — уведомления
   format.js         — форматирование зарплаты и типа занятости
   App.jsx           — маршруты и layout
-  components/       — Navbar, VacancyCard, AuthModal
-  pages/            — Home, VacancyDetail, CandidateDashboard, EmployerDashboard
+  components/       — Navbar, VacancyCard, AuthModal, ApplyModal
+  useApplyFlow.jsx  — кнопка «Откликнуться»: вход / модалка / «уже откликнулись»
+  pages/            — Home, VacancyDetail, CandidateDashboard, EmployerDashboard, VacancyApplications
   index.css         — стили (светлая/тёмная тема)
 ```

@@ -30,6 +30,9 @@ public class Application {
     @Column(name = "cover_letter")
     private String coverLetter;
 
+    @Column(name = "employer_comment")
+    private String employerComment;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

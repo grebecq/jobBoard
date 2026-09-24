@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { formatSalary, employmentLabel } from '../format.js'
 
-export default function VacancyCard({ v, onApply }) {
+export default function VacancyCard({ v, onApply, applied, canApply = true }) {
   const navigate = useNavigate()
   const open = () => navigate(`/vacancy/${v.id}`)
 
@@ -30,13 +30,17 @@ export default function VacancyCard({ v, onApply }) {
 
       <div className="vac-foot">
         <span className="ago">{v.createdAt ? new Date(v.createdAt).toLocaleDateString('ru-RU') : 'Недавно'}</span>
-        <button
-          className="btn btn-primary"
-          style={{ padding: '7px 15px', fontSize: '13.5px' }}
-          onClick={() => onApply?.(v)}
-        >
-          Откликнуться
-        </button>
+        {canApply && (applied ? (
+          <span className="status invited">Вы откликнулись ✓</span>
+        ) : (
+          <button
+            className="btn btn-primary"
+            style={{ padding: '7px 15px', fontSize: '13.5px' }}
+            onClick={() => onApply?.(v)}
+          >
+            Откликнуться
+          </button>
+        ))}
       </div>
     </article>
   )
