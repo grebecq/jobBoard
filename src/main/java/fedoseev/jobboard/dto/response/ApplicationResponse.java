@@ -29,4 +29,13 @@ public class ApplicationResponse {
     private String vacancyTitle;
 
     private String vacancyCity;
+
+    private String companyName;
+
+    private String employerComment;
+
+    // заполняются только при статусе INVITED
+    private String companyContactEmail;
+
+    private String companyTelegram;
 }

@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { useToast } from '../toast.jsx'
 import { vacanciesApi, companiesApi, apiMessage } from '../api.js'
 import { formatSalary } from '../format.js'
 
+const EMPTY_COMPANY = { name: '', website: '', description: '', contactEmail: '', telegram: '' }
+
 export default function EmployerDashboard() {
   const { user } = useAuth()
   const toast = useToast()
+  const navigate = useNavigate()
   const [vacancies, setVacancies] = useState([])
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [f, setF] = useState({ title: '', city: '', employmentType: 'FULL_TIME', salaryFrom: '', salaryTo: '', description: '', companyId: '' })
-  const [company, setCompany] = useState({ name: '', website: '', description: '' })
+  const [company, setCompany] = useState(EMPTY_COMPANY)
   const [busy, setBusy] = useState(false)
   const [companyBusy, setCompanyBusy] = useState(false)
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
@@ -21,7 +25,7 @@ export default function EmployerDashboard() {
     setLoading(true)
     try {
       const [mine, myCompanies] = await Promise.all([
-        vacanciesApi.mine({ size: 50 }),
+        vacanciesApi.mine({ size: 50, sort: 'createdAt,desc' }),
         companiesApi.mine(),
       ])
       setVacancies(mine.items)
@@ -41,13 +45,9 @@ export default function EmployerDashboard() {
     e.preventDefault()
     setCompanyBusy(true)
     try {
-      const created = await companiesApi.create({
-        name: company.name,
-        website: company.website || null,
-        description: company.description || null,
-      })
+      const created = await companiesApi.create(companyPayload(company))
       toast('Компания создана ✓')
-      setCompany({ name: '', website: '', description: '' })
+      setCompany(EMPTY_COMPANY)
       setCompanies((prev) => [...prev, created])
       setF((prev) => ({ ...prev, companyId: created.id }))
     } catch (err) {
@@ -84,12 +84,23 @@ export default function EmployerDashboard() {
     }
   }
 
+  const totalApps = vacancies.reduce((n, v) => n + (v.applicationsCount || 0), 0)
+  const newApps = vacancies.reduce((n, v) => n + (v.newApplicationsCount || 0), 0)
+
   return (
     <section className="view wrap">
       <div className="dash-head">
         <div className="eyebrow">Работодатель · {user?.email}</div>
         <h1>Мои вакансии</h1>
       </div>
+
+      {!loading && vacancies.length > 0 && (
+        <div className="stats">
+          <div className="stat accent"><div className="n">{vacancies.length}</div><div className="l">Вакансий</div></div>
+          <div className="stat"><div className="n">{totalApps}</div><div className="l">Откликов всего</div></div>
+          <div className="stat"><div className="n">{newApps}</div><div className="l">Новых, не просмотрено</div></div>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-head"><h3>Опубликованные вакансии</h3></div>
@@ -107,11 +118,24 @@ export default function EmployerDashboard() {
               <span className={'status ' + (String(v.status).toUpperCase() === 'CLOSED' ? 'closed' : 'open')}>
                 {String(v.status).toUpperCase() === 'CLOSED' ? 'Закрыта' : 'Открыта'}
               </span>
-              <button className="mini-btn">Редактировать</button>
+              <button className="mini-btn" onClick={() => navigate(`/my/vacancies/${v.id}/applications`)}>
+                Отклики: {v.applicationsCount ?? 0}
+                {v.newApplicationsCount > 0 && <span className="dot-count">+{v.newApplicationsCount}</span>}
+              </button>
             </div>
           ))
         )}
       </div>
+
+      {!loading && companies.length > 0 && (
+        <div className="panel">
+          <div className="panel-head"><h3>Мои компании и контакты</h3></div>
+          {companies.map((c) => (
+            <CompanyRow key={c.id} company={c}
+              onSaved={(saved) => setCompanies((prev) => prev.map((x) => (x.id === saved.id ? saved : x)))} />
+          ))}
+        </div>
+      )}
 
       {!loading && companies.length === 0 && (
         <form className="panel" onSubmit={createCompany}>
@@ -123,6 +147,7 @@ export default function EmployerDashboard() {
               <input className="inp" value={company.website} onChange={setC('website')} placeholder="https://example.com" /></div>
             <div className="full"><label className="field-l">О компании</label>
               <textarea className="inp" value={company.description} onChange={setC('description')} placeholder="Чем занимаетесь" /></div>
+            <ContactFields value={company} onChange={setC} />
             <div className="full">
               <button className="btn btn-primary" disabled={companyBusy}>{companyBusy ? 'Создаём…' : 'Создать компанию'}</button>
             </div>
@@ -163,5 +188,80 @@ export default function EmployerDashboard() {
         </div>
       </form>
     </section>
+  )
+}
+
+function companyPayload(c) {
+  return {
+    name: c.name,
+    website: c.website || null,
+    description: c.description || null,
+    logoUrl: c.logoUrl || null,
+    contactEmail: c.contactEmail || null,
+    telegram: c.telegram || null,
+  }
+}
+
+function ContactFields({ value, onChange }) {
+  return (
+    <>
+      <div><label className="field-l">Telegram для связи</label>
+        <input className="inp" value={value.telegram || ''} onChange={onChange('telegram')} placeholder="@hr_company или t.me/hr_company" /></div>
+      <div><label className="field-l">Email для связи</label>
+        <input className="inp" type="email" value={value.contactEmail || ''} onChange={onChange('contactEmail')} placeholder="hr@company.ru" /></div>
+      <div className="full hint">Кандидат увидит эти контакты, только когда вы его пригласите. Без них покажем email вашего аккаунта.</div>
+    </>
+  )
+}
+
+function CompanyRow({ company, onSaved }) {
+  const toast = useToast()
+  const [editing, setEditing] = useState(false)
+  const [form, setForm] = useState(company)
+  const [busy, setBusy] = useState(false)
+  const setK = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+
+  async function save(e) {
+    e.preventDefault()
+    setBusy(true)
+    try {
+      const saved = await companiesApi.update(company.id, companyPayload(form))
+      onSaved(saved)
+      setForm(saved)
+      setEditing(false)
+      toast('Контакты сохранены ✓')
+    } catch (err) {
+      toast(apiMessage(err, 'Не удалось сохранить'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const hasContacts = company.telegram || company.contactEmail
+
+  return (
+    <div className="app-item">
+      <div className="app-row">
+        <div>
+          <div className="ti">{company.name}</div>
+          <div className="ts">
+            {hasContacts
+              ? [company.telegram && '@' + company.telegram, company.contactEmail].filter(Boolean).join(' · ')
+              : '⚠️ Контакты не указаны — кандидаты увидят только email аккаунта'}
+          </div>
+        </div>
+        <button className="mini-btn" onClick={() => { setForm(company); setEditing(!editing) }}>
+          {editing ? 'Отмена' : 'Изменить контакты'}
+        </button>
+      </div>
+      {editing && (
+        <form className="form-grid inset" onSubmit={save}>
+          <ContactFields value={form} onChange={setK} />
+          <div className="full">
+            <button className="btn btn-primary" disabled={busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</button>
+          </div>
+        </form>
+      )}
+    </div>
   )
 }

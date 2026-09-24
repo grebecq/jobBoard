@@ -32,6 +32,11 @@ public class Company {
 
     private String website;
 
+    @Column(name = "contact_email")
+    private String contactEmail;
+
+    private String telegram;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     private User owner;

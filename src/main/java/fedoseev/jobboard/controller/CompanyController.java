@@ -3,6 +3,7 @@ package fedoseev.jobboard.controller;
 import fedoseev.jobboard.dto.request.CompanyRequest;
 import fedoseev.jobboard.dto.response.CompanyResponse;
 import fedoseev.jobboard.service.CompanyService;
+import fedoseev.jobboard.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +30,14 @@ public class CompanyController {
     @PostMapping
     public CompanyResponse createCompany(@Valid @RequestBody CompanyRequest request, Authentication authentication){
        return companyService.createCompany(request, authentication.getName());
+    }
+
+    @Operation(summary = "Изменить компанию", description = "Только владелец (или ADMIN). Здесь же задаются контакты для связи: email и Telegram.")
+    @PutMapping("/{id}")
+    public CompanyResponse updateCompany(@PathVariable Long id,
+                                         @Valid @RequestBody CompanyRequest request,
+                                         Authentication authentication) {
+        return companyService.updateCompany(id, request, authentication.getName(), SecurityUtils.isAdmin(authentication));
     }
 
     @Operation(summary = "Мои компании", description = "Компании текущего работодателя — от их имени он публикует вакансии.")
