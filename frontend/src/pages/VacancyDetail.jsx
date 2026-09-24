@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { vacanciesApi } from '../api.js'
 import { useApplyFlow } from '../useApplyFlow.jsx'
-import { formatSalary } from '../format.js'
+import { formatDate } from '../format.js'
 import { useDictionaries } from '../dictionaries.jsx'
+import Salary, { salaryScale } from '../components/Salary.jsx'
 
 export default function VacancyDetail({ onAuth }) {
   const { id } = useParams()
@@ -22,74 +23,84 @@ export default function VacancyDetail({ onAuth }) {
       .finally(() => setLoading(false))
   }, [id])
 
+  const back = <button className="back" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}>Назад к списку</button>
+
   if (loading) return <div className="wrap"><div className="spinner" /></div>
   if (error || !v) return (
     <div className="wrap">
-      <button className="back" onClick={() => navigate('/')}>← ко всем вакансиям</button>
-      <div className="center-msg">Не удалось загрузить вакансию. Возможно, бэкенд недоступен.</div>
+      {back}
+      <div className="sheet empty">Вакансия не найдена. Возможно, её уже сняли с публикации.</div>
     </div>
   )
 
-  return (
-    <section className="view wrap">
-      <button className="back" onClick={() => navigate('/')}>← ко всем вакансиям</button>
-      <div className="detail">
-        <div className="dcard">
-          <h1>{v.title}</h1>
-          <div className="dmeta">
-            <span>{v.company}</span>
-            {v.city && <><span>·</span><span>📍 {v.city}</span></>}
-            {v.grade && <span className="badge grade">{label('grade', v.grade)}</span>}
-            {v.workFormat && <span className={'badge ' + (v.remote ? 'remote' : 'emp')}>{label('workFormat', v.workFormat)}</span>}
-          </div>
-          <dl className="facts">
-            {[
-              ['Специализация', label('specialization', v.specialization)],
-              ['Грейд', label('grade', v.grade)],
-              ['Опыт', label('experience', v.experience)],
-              ['Формат работы', label('workFormat', v.workFormat)],
-              ['Занятость', label('employmentType', v.employmentType)],
-            ].filter(([, val]) => val).map(([k, val]) => (
-              <div key={k}><dt>{k}</dt><dd>{val}</dd></div>
-            ))}
-          </dl>
-          {v.description
-            ? <p style={{ color: 'var(--muted)', whiteSpace: 'pre-line' }}>{v.description}</p>
-            : <p style={{ color: 'var(--muted)' }}>Описание не указано.</p>}
-          {v.skills?.length > 0 && (
-            <div className="dsection">
-              <h3>Стек и навыки</h3>
-              <div className="vac-tags">{v.skills.map((s, i) => <span className="t" key={i}>{s}</span>)}</div>
-            </div>
-          )}
-        </div>
+  const closed = String(v.status).toUpperCase() === 'CLOSED'
+  const facts = [
+    ['Направление', label('specialization', v.specialization)],
+    ['Грейд', label('grade', v.grade)],
+    ['Опыт', label('experience', v.experience)],
+    ['Формат', label('workFormat', v.workFormat)],
+    ['Занятость', label('employmentType', v.employmentType)],
+    ['Город', v.city],
+  ].filter(([, val]) => val)
+  // шкала вилки для одной вакансии: верх вилки плюс запас в четверть
+  const scale = salaryScale([{ salaryTo: (v.salaryTo || v.salaryFrom || 0) * 1.25 }])
 
-        <div className="aside">
-          <div className="box">
-            <div className="salary-big">{formatSalary(v.salaryFrom, v.salaryTo)}</div>
-            <div style={{ color: 'var(--muted)', fontSize: '13.5px' }}>на руки, до вычета налогов</div>
-            {String(v.status).toUpperCase() === 'CLOSED' ? (
-              <div className="note" style={{ marginTop: '12px' }}>Вакансия закрыта, отклики не принимаются</div>
+  return (
+    <div className="wrap">
+      {back}
+      <div className="detail">
+        <article className="sheet sheet-pad">
+          <h1>{v.title}</h1>
+          <div className="org">{v.company}</div>
+
+          {facts.length > 0 && (
+            <dl className="facts">
+              {facts.map(([k, val]) => (
+                <div key={k}><dt>{k}</dt><dd>{val}</dd></div>
+              ))}
+            </dl>
+          )}
+
+          <p className={'prose' + (v.description ? '' : ' none')}>
+            {v.description || 'Работодатель не добавил описание.'}
+          </p>
+
+          {v.skills?.length > 0 && (
+            <section className="block">
+              <h2>Стек</h2>
+              <div className="tags">{v.skills.map((s) => <span className="tag" key={s}>{s}</span>)}</div>
+            </section>
+          )}
+
+          {v.createdAt && <p className="date block">Опубликована {formatDate(v.createdAt)}</p>}
+        </article>
+
+        <aside className="aside">
+          <div className="sheet">
+            <Salary from={v.salaryFrom} to={v.salaryTo} scale={scale} showScale />
+            <p className="pay-note">
+              {v.salaryFrom || v.salaryTo ? 'Вилка, которую указал работодатель' : 'Обсуждается на собеседовании'}
+            </p>
+            {closed ? (
+              <div className="note">Вакансия закрыта, отклики больше не принимаются</div>
             ) : applyFlow.canApply && (applyFlow.isApplied(v.id) ? (
-              <div className="note ok" style={{ marginTop: '12px' }}>
-                Вы откликнулись. Статус — в разделе «Мои отклики».
-              </div>
+              <div className="note ok">Вы откликнулись. Ответ работодателя появится в разделе «Мои отклики».</div>
             ) : (
-              <button className="btn btn-primary" onClick={() => applyFlow.start(v)}>Откликнуться</button>
+              <button className="btn btn-primary btn-lg btn-block" onClick={() => applyFlow.start(v)}>Откликнуться</button>
             ))}
           </div>
-          <div className="box">
-            <div className="co-row">
-              <div className="co-logo">{(v.company || '—')[0]}</div>
+          <div className="sheet">
+            <div className="company">
+              <div className="monogram">{(v.company || '?')[0]}</div>
               <div>
-                <div style={{ fontWeight: 700 }}>{v.company}</div>
-                <div style={{ color: 'var(--muted)', fontSize: '13px' }}>Работодатель</div>
+                <div className="name">{v.company}</div>
+                <div className="role">Работодатель</div>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </div>
       {applyFlow.modal}
-    </section>
+    </div>
   )
 }

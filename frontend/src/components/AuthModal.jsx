@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../auth.jsx'
 import { useToast } from '../toast.jsx'
+import Modal from './Modal.jsx'
 
 export default function AuthModal({ mode: initialMode, onClose }) {
   const [mode, setMode] = useState(initialMode)
@@ -21,66 +22,59 @@ export default function AuthModal({ mode: initialMode, onClose }) {
     try {
       if (isReg) {
         await register(email, password, role)
-        toast('Аккаунт создан ✓')
+        toast('Аккаунт создан')
       } else {
         await login(email, password)
-        toast('С возвращением ✓')
+        toast('Вы вошли')
       }
       onClose()
     } catch (e) {
-      const msg = e?.response?.data?.message || 'Не удалось. Проверь email и пароль.'
-      setErr(msg)
+      setErr(e?.response?.data?.message || 'Неверный email или пароль')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="overlay" onClick={(e) => e.target.classList.contains('overlay') && onClose()}>
-      <form className="modal" onSubmit={submit}>
-        <button type="button" className="close-x" onClick={onClose}>×</button>
-        <div className="modal-head">
-          <h2>{isReg ? 'Регистрация' : 'Вход'}</h2>
-          <p>Добро пожаловать в Вакант</p>
-        </div>
-        <div className="seg">
-          <button type="button" className={!isReg ? 'active' : ''} onClick={() => setMode('login')}>Вход</button>
-          <button type="button" className={isReg ? 'active' : ''} onClick={() => setMode('register')}>Регистрация</button>
+    <Modal onClose={onClose}>
+      <form onSubmit={submit}>
+        <div className="tabs auth-tabs" aria-label={isReg ? 'Регистрация' : 'Вход'}>
+          <button type="button" className={!isReg ? 'on' : ''} onClick={() => setMode('login')}>Вход</button>
+          <button type="button" className={isReg ? 'on' : ''} onClick={() => setMode('register')}>Регистрация</button>
         </div>
         <div className="modal-body">
-          <div>
-            <label className="field-l">Email</label>
-            <input className="inp" type="email" required value={email}
+          <label className="field">
+            <span>Email</span>
+            <input className="inp" type="email" required autoFocus autoComplete="email" value={email}
               onChange={(e) => setEmail(e.target.value)} placeholder="you@mail.ru" />
-          </div>
-          <div>
-            <label className="field-l">Пароль</label>
+          </label>
+          <label className="field">
+            <span>Пароль</span>
             <input className="inp" type="password" required minLength={6} value={password}
-              onChange={(e) => setPassword(e.target.value)} placeholder="от 6 символов" />
-          </div>
+              autoComplete={isReg ? 'new-password' : 'current-password'}
+              onChange={(e) => setPassword(e.target.value)} placeholder="Не короче 6 символов" />
+          </label>
           {isReg && (
-            <div>
-              <label className="field-l">Я ищу</label>
-              <div className="role-pick">
+            <div className="field">
+              <span>Я здесь, чтобы</span>
+              <div className="choice">
                 <label>
-                  <input type="radio" name="role" checked={role === 'CANDIDATE'}
-                    onChange={() => setRole('CANDIDATE')} />
-                  <span>💼 Работу</span>
+                  <input type="radio" name="role" checked={role === 'CANDIDATE'} onChange={() => setRole('CANDIDATE')} />
+                  найти работу
                 </label>
                 <label>
-                  <input type="radio" name="role" checked={role === 'EMPLOYER'}
-                    onChange={() => setRole('EMPLOYER')} />
-                  <span>👥 Сотрудников</span>
+                  <input type="radio" name="role" checked={role === 'EMPLOYER'} onChange={() => setRole('EMPLOYER')} />
+                  нанять людей
                 </label>
               </div>
             </div>
           )}
           {err && <div className="err">{err}</div>}
-          <button className="btn btn-primary" style={{ padding: '12px', marginTop: '4px' }} disabled={busy}>
-            {busy ? 'Секунду…' : isReg ? 'Создать аккаунт' : 'Войти'}
+          <button className="btn btn-primary btn-lg" disabled={busy}>
+            {busy ? 'Подождите…' : isReg ? 'Создать аккаунт' : 'Войти'}
           </button>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }

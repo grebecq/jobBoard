@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import VacancyCard from '../components/VacancyCard.jsx'
 import SkillPicker from '../components/SkillPicker.jsx'
+import { salaryScale } from '../components/Salary.jsx'
 import { vacanciesApi } from '../api.js'
 import { useApplyFlow } from '../useApplyFlow.jsx'
 import { useDictionaries } from '../dictionaries.jsx'
 
 const PAGE_SIZE = 20
 const LIST_KEYS = ['specialization', 'grade', 'experience', 'workFormat', 'employmentType', 'skill']
+const QUICK_ROLES = ['BACKEND', 'FRONTEND', 'FULLSTACK', 'MOBILE', 'QA', 'DEVOPS', 'DATA_SCIENCE', 'ANALYST']
 
 function readFilters(sp) {
   const f = {
@@ -90,145 +92,131 @@ export default function Home({ onAuth }) {
   }
 
   const nActive = activeCount(filters)
+  const scale = salaryScale(result.items)
+  const roles = QUICK_ROLES.filter((r) => dict.specializations.some((o) => o.value === r))
 
   return (
-    <section className="view">
-      <div className="hero">
-        <div className="hero-in">
-          <h1>Найди работу мечты <span className="g">в IT</span></h1>
-          <p>Вакансии для разработчиков, тестировщиков, DevOps и аналитиков. Фильтры по стеку, грейду и формату работы.</p>
-          <form className="search" onSubmit={submitSearch}>
-            <label className="field">
-              <span>🔍</span>
-              <input placeholder="Должность или технология: «Java», «Kotlin backend»" value={qDraft}
-                onChange={(e) => setQDraft(e.target.value)} />
-            </label>
-            <div className="divider" />
-            <label className="field">
-              <span>📍</span>
-              <input placeholder="Город" value={cityDraft} onChange={(e) => setCityDraft(e.target.value)} />
-            </label>
+    <>
+      <section className="find">
+        <div className="wrap">
+          <h1>Вакансии в IT</h1>
+          <form className="search" onSubmit={submitSearch} role="search">
+            <input className="inp" aria-label="Должность или технология" value={qDraft}
+              placeholder="Должность или стек, например Kotlin" onChange={(e) => setQDraft(e.target.value)} />
+            <input className="inp" aria-label="Город" value={cityDraft} placeholder="Город"
+              onChange={(e) => setCityDraft(e.target.value)} />
             <button className="btn btn-primary" type="submit">Найти</button>
           </form>
-          <div className="chips">
-            {['BACKEND', 'FRONTEND', 'MOBILE', 'QA', 'DEVOPS', 'DATA_SCIENCE'].map((v) => (
-              <button type="button" key={v}
-                className={'chip' + (filters.specialization.includes(v) ? ' on' : '')}
+          <div className="roles">
+            <button type="button" className={filters.specialization.length === 0 ? 'on' : ''}
+              onClick={() => update({ specialization: [] })}>Все направления</button>
+            {roles.map((v) => (
+              <button type="button" key={v} className={filters.specialization.includes(v) ? 'on' : ''}
                 onClick={() => toggle('specialization', v)}>
                 {dict.label('specialization', v)}
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="wrap">
-        <button className="btn btn-ghost filters-toggle" onClick={() => setFiltersOpen(!filtersOpen)}>
-          ⚙️ Фильтры{nActive > 0 ? ` · ${nActive}` : ''}
+      <div className="wrap listing">
+        <button className="btn btn-quiet filters-btn" onClick={() => setFiltersOpen(!filtersOpen)}>
+          {filtersOpen ? 'Скрыть фильтры' : 'Фильтры'}{nActive > 0 ? ` (${nActive})` : ''}
         </button>
 
-        <div className="listing">
-          <aside className={'filters' + (filtersOpen ? ' open' : '')}>
-            <div className="fgroup">
-              <div className="flabel">Навыки <span className="hint">— любой из</span></div>
-              <SkillPicker compact value={filters.skill} onChange={(ids) => update({ skill: ids })} placeholder="Kotlin, React…" />
+        <aside className={'filters' + (filtersOpen ? ' open' : '')}>
+          <div className="fgroup">
+            <h3>Навыки</h3>
+            <SkillPicker compact value={filters.skill} onChange={(ids) => update({ skill: ids })} placeholder="Kotlin, React…" />
+          </div>
+
+          <div className="fgroup">
+            <h3>Грейд</h3>
+            <div className="grade-row">
+              {dict.grades.map((o) => (
+                <button type="button" key={o.value} aria-pressed={filters.grade.includes(o.value)}
+                  className={'toggle' + (filters.grade.includes(o.value) ? ' on' : '')}
+                  onClick={() => toggle('grade', o.value)}>{o.label}</button>
+              ))}
             </div>
+          </div>
 
-            <CheckGroup title="Специализация" options={dict.specializations} selected={filters.specialization}
-              onToggle={(v) => toggle('specialization', v)} collapsedCount={7} />
+          <div className="fgroup">
+            <h3>Зарплата от</h3>
+            <input className="inp num" inputMode="numeric" value={salaryDraft} placeholder="150 000 ₽"
+              aria-label="Зарплата от, рублей"
+              onChange={(e) => setSalaryDraft(e.target.value)} onBlur={commitSalary}
+              onKeyDown={(e) => e.key === 'Enter' && commitSalary()} />
+            <label className="check" style={{ marginTop: '8px' }}>
+              <input type="checkbox" checked={filters.onlyWithSalary}
+                onChange={(e) => update({ onlyWithSalary: e.target.checked })} />
+              Только с указанной зарплатой
+            </label>
+          </div>
 
-            <div className="fgroup">
-              <div className="flabel">Грейд</div>
-              <div className="pill-row">
-                {dict.grades.map((o) => (
-                  <button type="button" key={o.value}
-                    className={'pill' + (filters.grade.includes(o.value) ? ' on' : '')}
-                    onClick={() => toggle('grade', o.value)}>{o.label}</button>
+          <CheckGroup title="Направление" options={dict.specializations} selected={filters.specialization}
+            onToggle={(v) => toggle('specialization', v)} collapsedCount={6} />
+          <CheckGroup title="Формат работы" options={dict.workFormats} selected={filters.workFormat}
+            onToggle={(v) => toggle('workFormat', v)} />
+          <CheckGroup title="Опыт" options={dict.experiences} selected={filters.experience}
+            onToggle={(v) => toggle('experience', v)} />
+          <CheckGroup title="Занятость" options={dict.employmentTypes} selected={filters.employmentType}
+            onToggle={(v) => toggle('employmentType', v)} />
+
+          {nActive > 0 && (
+            <div className="filters-foot">
+              <button className="btn btn-quiet btn-block" onClick={resetAll}>Сбросить фильтры</button>
+            </div>
+          )}
+        </aside>
+
+        <div>
+          <div className="results-head">
+            <span className="count">
+              {loading ? 'Ищем…' : error ? '' : `Найдено ${result.total} ${plural(result.total)}`}
+            </span>
+            <select className="inp" aria-label="Сортировка" value={filters.order}
+              onChange={(e) => update({ order: e.target.value })}>
+              <option value="date">Сначала новые</option>
+              <option value="salary">Сначала с большей зарплатой</option>
+            </select>
+          </div>
+
+          {loading ? (
+            <div className="sheet"><div className="spinner" /></div>
+          ) : error ? (
+            <div className="sheet empty">Сервер не ответил. Обновите страницу через минуту.</div>
+          ) : result.items.length === 0 ? (
+            <div className="sheet empty">
+              <p>По этим условиям вакансий нет. Уберите часть фильтров, чтобы увидеть больше.</p>
+              {nActive > 0 && <button className="btn btn-quiet" onClick={resetAll}>Сбросить фильтры</button>}
+            </div>
+          ) : (
+            <>
+              <div className="sheet">
+                {result.items.map((v) => (
+                  <VacancyCard key={v.id} v={v} scale={scale} onApply={applyFlow.start}
+                    applied={applyFlow.isApplied(v.id)} canApply={applyFlow.canApply}
+                    onSkillClick={(name) => {
+                      const s = dict.skills.find((x) => x.name === name)
+                      if (s && !filters.skill.includes(s.id)) update({ skill: [...filters.skill, s.id] })
+                    }} />
                 ))}
               </div>
-            </div>
-
-            <div className="fgroup">
-              <div className="flabel">Зарплата от, ₽</div>
-              <input className="inp" inputMode="numeric" value={salaryDraft} placeholder="например 150000"
-                onChange={(e) => setSalaryDraft(e.target.value)} onBlur={commitSalary}
-                onKeyDown={(e) => e.key === 'Enter' && commitSalary()} />
-              <label className="opt" style={{ marginTop: '8px' }}>
-                <input type="checkbox" checked={filters.onlyWithSalary}
-                  onChange={(e) => update({ onlyWithSalary: e.target.checked })} />
-                Только с указанной зарплатой
-              </label>
-            </div>
-
-            <CheckGroup title="Формат работы" options={dict.workFormats} selected={filters.workFormat}
-              onToggle={(v) => toggle('workFormat', v)} />
-            <CheckGroup title="Опыт работы" options={dict.experiences} selected={filters.experience}
-              onToggle={(v) => toggle('experience', v)} />
-            <CheckGroup title="Тип занятости" options={dict.employmentTypes} selected={filters.employmentType}
-              onToggle={(v) => toggle('employmentType', v)} />
-
-            <div className="fgroup">
-              <div className="flabel">Город</div>
-              <input className="inp" value={cityDraft} placeholder="Любой"
-                onChange={(e) => setCityDraft(e.target.value)}
-                onBlur={() => cityDraft.trim() !== filters.city && update({ city: cityDraft.trim() })}
-                onKeyDown={(e) => e.key === 'Enter' && update({ city: cityDraft.trim() })} />
-            </div>
-
-            {nActive > 0 && (
-              <div className="fgroup">
-                <button className="btn btn-ghost" style={{ width: '100%' }} onClick={resetAll}>Сбросить фильтры</button>
-              </div>
-            )}
-          </aside>
-
-          <div>
-            <div className="results-head">
-              <div>
-                <h2>Вакансии</h2>
-                <span className="count">{loading ? 'Загрузка…' : `${result.total} ${plural(result.total)}`}</span>
-              </div>
-              <select className="inp sort" value={filters.order} onChange={(e) => update({ order: e.target.value })}>
-                <option value="date">Сначала новые</option>
-                <option value="salary">Сначала с большей зарплатой</option>
-              </select>
-            </div>
-
-            {loading ? (
-              <div className="spinner" />
-            ) : error ? (
-              <div className="center-msg">Не удалось загрузить вакансии. Проверь, запущен ли бэкенд.</div>
-            ) : result.items.length === 0 ? (
-              <div className="center-msg">
-                Ничего не нашлось. Попробуй ослабить фильтры.
-                {nActive > 0 && <div style={{ marginTop: '12px' }}><button className="btn btn-ghost" onClick={resetAll}>Сбросить фильтры</button></div>}
-              </div>
-            ) : (
-              <>
-                <div className="cards">
-                  {result.items.map((v) => (
-                    <VacancyCard key={v.id} v={v} onApply={applyFlow.start}
-                      applied={applyFlow.isApplied(v.id)} canApply={applyFlow.canApply}
-                      onSkillClick={(name) => {
-                        const s = dict.skills.find((x) => x.name === name)
-                        if (s && !filters.skill.includes(s.id)) update({ skill: [...filters.skill, s.id] })
-                      }} />
-                  ))}
+              {result.pages > 1 && (
+                <div className="pager">
+                  <button className="btn btn-quiet btn-sm" disabled={filters.page === 0} onClick={() => goPage(filters.page - 1)}>Назад</button>
+                  <span className="num">Страница {filters.page + 1} из {result.pages}</span>
+                  <button className="btn btn-quiet btn-sm" disabled={filters.page + 1 >= result.pages} onClick={() => goPage(filters.page + 1)}>Дальше</button>
                 </div>
-                {result.pages > 1 && (
-                  <div className="pager">
-                    <button className="btn btn-ghost" disabled={filters.page === 0} onClick={() => goPage(filters.page - 1)}>← Назад</button>
-                    <span>Страница {filters.page + 1} из {result.pages}</span>
-                    <button className="btn btn-ghost" disabled={filters.page + 1 >= result.pages} onClick={() => goPage(filters.page + 1)}>Вперёд →</button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+              )}
+            </>
+          )}
         </div>
       </div>
       {applyFlow.modal}
-    </section>
+    </>
   )
 }
 
@@ -241,16 +229,16 @@ function CheckGroup({ title, options, selected, onToggle, collapsedCount }) {
 
   return (
     <div className="fgroup">
-      <div className="flabel">{title}</div>
+      <h3>{title}</h3>
       {visible.map((o) => (
-        <label className="opt" key={o.value}>
+        <label className="check" key={o.value}>
           <input type="checkbox" checked={selected.includes(o.value)} onChange={() => onToggle(o.value)} />
           {o.label}
         </label>
       ))}
       {canCollapse && (
-        <button type="button" className="link-btn" onClick={() => setExpanded(!expanded)}>
-          {expanded ? 'Свернуть' : `Показать все (${options.length})`}
+        <button type="button" className="link" onClick={() => setExpanded(!expanded)}>
+          {expanded ? 'Свернуть' : `Все направления (${options.length})`}
         </button>
       )}
     </div>
