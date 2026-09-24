@@ -39,7 +39,7 @@ export default function CandidateDashboard() {
           ) : apps.length === 0 ? (
             <div className="empty">
               <p>Вы ещё никуда не откликались.</p>
-              <Link to="/" className="btn btn-primary">Смотреть вакансии</Link>
+              <Link to="/vacancies" className="btn btn-primary">Смотреть вакансии</Link>
             </div>
           ) : (
             apps.map((a) => <ApplicationItem key={a.id} a={a} />)

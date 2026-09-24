@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
+import Logo from './Logo.jsx'
 
 function toggleTheme() {
   const root = document.documentElement
@@ -16,10 +17,10 @@ export default function Navbar({ onAuth }) {
   return (
     <header className="top">
       <div className="wrap top-in">
-        <Link to="/" className="wordmark">Вакант</Link>
+        <Link to="/" className="wordmark" aria-label="Вакант, на главную"><Logo /></Link>
 
         <nav className="top-nav">
-          <NavLink to="/" end>Вакансии</NavLink>
+          <NavLink to="/vacancies">Вакансии</NavLink>
           {user?.role === 'CANDIDATE' && <NavLink to="/my/applications">Мои отклики</NavLink>}
           {(user?.role === 'EMPLOYER' || user?.role === 'ADMIN') && (
             <NavLink to="/my/vacancies">Мои вакансии</NavLink>

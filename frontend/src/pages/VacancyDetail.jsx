@@ -23,7 +23,7 @@ export default function VacancyDetail({ onAuth }) {
       .finally(() => setLoading(false))
   }, [id])
 
-  const back = <button className="back" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}>Назад к списку</button>
+  const back = <button className="back" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/vacancies'))}>Назад к списку</button>
 
   if (loading) return <div className="wrap"><div className="spinner" /></div>
   if (error || !v) return (
