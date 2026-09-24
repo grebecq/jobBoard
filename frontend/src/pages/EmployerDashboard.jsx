@@ -4,8 +4,14 @@ import { useAuth } from '../auth.jsx'
 import { useToast } from '../toast.jsx'
 import { vacanciesApi, companiesApi, apiMessage } from '../api.js'
 import { formatSalary } from '../format.js'
+import { useDictionaries } from '../dictionaries.jsx'
+import SkillPicker from '../components/SkillPicker.jsx'
 
 const EMPTY_COMPANY = { name: '', website: '', description: '', contactEmail: '', telegram: '' }
+const EMPTY_VACANCY = {
+  title: '', city: '', description: '', salaryFrom: '', salaryTo: '',
+  specialization: '', grade: '', experience: '', workFormat: 'OFFICE', employmentType: 'FULL_TIME', skillIds: [],
+}
 
 export default function EmployerDashboard() {
   const { user } = useAuth()
@@ -14,7 +20,8 @@ export default function EmployerDashboard() {
   const [vacancies, setVacancies] = useState([])
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
-  const [f, setF] = useState({ title: '', city: '', employmentType: 'FULL_TIME', salaryFrom: '', salaryTo: '', description: '', companyId: '' })
+  const dict = useDictionaries()
+  const [f, setF] = useState({ ...EMPTY_VACANCY, companyId: '' })
   const [company, setCompany] = useState(EMPTY_COMPANY)
   const [busy, setBusy] = useState(false)
   const [companyBusy, setCompanyBusy] = useState(false)
@@ -63,19 +70,30 @@ export default function EmployerDashboard() {
       toast('Сначала создайте компанию')
       return
     }
+    const salaryFrom = f.salaryFrom ? Number(f.salaryFrom) : null
+    const salaryTo = f.salaryTo ? Number(f.salaryTo) : null
+    if (salaryFrom && salaryTo && salaryFrom > salaryTo) {
+      toast('Зарплата «от» больше, чем «до»')
+      return
+    }
     setBusy(true)
     try {
       await vacanciesApi.create({
         title: f.title,
         description: f.description,
-        city: f.city,
-        employmentType: f.employmentType,
-        salaryFrom: f.salaryFrom ? Number(f.salaryFrom) : null,
-        salaryTo: f.salaryTo ? Number(f.salaryTo) : null,
+        city: f.city || null,
+        specialization: f.specialization || null,
+        grade: f.grade || null,
+        experience: f.experience || null,
+        workFormat: f.workFormat || null,
+        employmentType: f.employmentType || null,
+        salaryFrom,
+        salaryTo,
+        skillIds: f.skillIds,
         companyId: Number(f.companyId),
       })
       toast('Вакансия опубликована ✓')
-      setF({ title: '', city: '', employmentType: 'FULL_TIME', salaryFrom: '', salaryTo: '', description: '', companyId: f.companyId })
+      setF({ ...EMPTY_VACANCY, companyId: f.companyId })
       load()
     } catch (err) {
       toast(apiMessage(err, 'Не удалось опубликовать вакансию'))
@@ -113,7 +131,7 @@ export default function EmployerDashboard() {
             <div className="trow" key={v.id}>
               <div>
                 <div className="ti">{v.title}</div>
-                <div className="ts">{v.company} · {v.city} · {formatSalary(v.salaryFrom, v.salaryTo)}</div>
+                <div className="ts">{[v.company, v.city, formatSalary(v.salaryFrom, v.salaryTo)].filter(Boolean).join(' · ')}</div>
               </div>
               <span className={'status ' + (String(v.status).toUpperCase() === 'CLOSED' ? 'closed' : 'open')}>
                 {String(v.status).toUpperCase() === 'CLOSED' ? 'Закрыта' : 'Открыта'}
@@ -167,19 +185,24 @@ export default function EmployerDashboard() {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select></div>
+          <div><label className="field-l">Специализация</label>
+            <DictSelect required options={dict.specializations} value={f.specialization} onChange={set('specialization')} placeholder="Выберите направление" /></div>
+          <div><label className="field-l">Грейд</label>
+            <DictSelect options={dict.grades} value={f.grade} onChange={set('grade')} placeholder="Любой" /></div>
+          <div><label className="field-l">Опыт работы</label>
+            <DictSelect options={dict.experiences} value={f.experience} onChange={set('experience')} placeholder="Не важен" /></div>
+          <div><label className="field-l">Формат работы</label>
+            <DictSelect required options={dict.workFormats} value={f.workFormat} onChange={set('workFormat')} /></div>
+          <div><label className="field-l">Тип занятости</label>
+            <DictSelect required options={dict.employmentTypes} value={f.employmentType} onChange={set('employmentType')} /></div>
           <div><label className="field-l">Город</label>
             <input className="inp" value={f.city} onChange={set('city')} placeholder="Красноярск" /></div>
-          <div><label className="field-l">Тип занятости</label>
-            <select className="inp" value={f.employmentType} onChange={set('employmentType')}>
-              <option value="FULL_TIME">Полная</option>
-              <option value="REMOTE">Удалённая</option>
-              <option value="PART_TIME">Частичная</option>
-              <option value="INTERNSHIP">Стажировка</option>
-            </select></div>
           <div><label className="field-l">Зарплата от, ₽</label>
-            <input className="inp" value={f.salaryFrom} onChange={set('salaryFrom')} placeholder="180000" /></div>
+            <input className="inp" inputMode="numeric" value={f.salaryFrom} onChange={set('salaryFrom')} placeholder="180000" /></div>
           <div><label className="field-l">Зарплата до, ₽</label>
-            <input className="inp" value={f.salaryTo} onChange={set('salaryTo')} placeholder="250000" /></div>
+            <input className="inp" inputMode="numeric" value={f.salaryTo} onChange={set('salaryTo')} placeholder="250000" /></div>
+          <div className="full"><label className="field-l">Стек и навыки <span className="hint">— по ним кандидаты находят вакансию</span></label>
+            <SkillPicker value={f.skillIds} onChange={(ids) => setF({ ...f, skillIds: ids })} placeholder="Начните вводить: Java, Spring Boot, PostgreSQL…" /></div>
           <div className="full"><label className="field-l">Описание</label>
             <textarea className="inp" required value={f.description} onChange={set('description')} placeholder="Что делать, что требуется, что предлагаете…" /></div>
           <div className="full">
@@ -188,6 +211,15 @@ export default function EmployerDashboard() {
         </div>
       </form>
     </section>
+  )
+}
+
+function DictSelect({ options, value, onChange, placeholder, required }) {
+  return (
+    <select className="inp" value={value} onChange={onChange} required={required}>
+      {placeholder !== undefined && <option value="">{placeholder}</option>}
+      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
   )
 }
 

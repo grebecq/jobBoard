@@ -1,6 +1,11 @@
 package fedoseev.jobboard.dto.response;
 
 import fedoseev.jobboard.enums.VacancyStatus;
+import fedoseev.jobboard.enums.EmploymentType;
+import fedoseev.jobboard.enums.Experience;
+import fedoseev.jobboard.enums.Grade;
+import fedoseev.jobboard.enums.Specialization;
+import fedoseev.jobboard.enums.WorkFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,7 +31,15 @@ public class VacancyResponse {
 
     private VacancyStatus status;
 
-    private String employmentType;
+    private EmploymentType employmentType;
+
+    private Specialization specialization;
+
+    private Grade grade;
+
+    private Experience experience;
+
+    private WorkFormat workFormat;
 
     private LocalDateTime createdAt;
 
