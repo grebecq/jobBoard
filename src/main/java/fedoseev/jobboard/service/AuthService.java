@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -29,16 +31,17 @@ public class AuthService {
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Email already taken: " + request.getEmail());
+        String email = normalize(request.getEmail());
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw new DuplicateResourceException("Этот email уже зарегистрирован. Войдите или используйте другой");
         }
 
         if (request.getRole() == Role.ADMIN) {
-            throw new BadRequestException("Cannot self-register as ADMIN");
+            throw new BadRequestException("Нельзя зарегистрироваться администратором");
         }
 
         User user = new User();
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setEnabled(true);
@@ -72,7 +75,10 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        String email = normalize(request.getEmail());
+        // старые аккаунты могли сохраниться с заглавными буквами
+        User user = userRepository.findByEmail(email)
+                .or(() -> userRepository.findFirstByEmailIgnoreCaseOrderByIdAsc(email))
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -84,5 +90,9 @@ public class AuthService {
         LoginResponse response = new LoginResponse();
         response.setToken(token);
         return response;
+    }
+
+    private static String normalize(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

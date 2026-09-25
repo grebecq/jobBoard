@@ -122,7 +122,7 @@ class ApplicationFunnelTest {
     }
 
     @Test
-    void updateCompany_byStranger_returns403() throws Exception {
+    void strangerCannotTouchForeignCompany() throws Exception {
         String owner = bearerFor(Role.EMPLOYER);
         String stranger = bearerFor(Role.EMPLOYER);
 
@@ -136,6 +136,12 @@ class ApplicationFunnelTest {
                         .header("Authorization", stranger)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Hijacked\"}"))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/vacancies")
+                        .header("Authorization", stranger)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Fake\",\"description\":\"x\",\"companyId\":" + companyId + "}"))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(put("/api/companies/" + companyId)

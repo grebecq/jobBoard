@@ -14,14 +14,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class RegisterRequest {
 
-    @NotBlank
-    @Email
+    @NotBlank(message = "Укажите email")
+    @Email(message = "Email указан неверно")
     private String email;
 
-    @NotBlank
-    @Size(min = 6)
+    @NotBlank(message = "Укажите пароль")
+    @Size(min = 6, max = 100, message = "Пароль должен быть от 6 до 100 символов")
     private String password;
 
-    @NotNull
+    @NotNull(message = "Выберите роль")
     private Role role;
+
+    public void setEmail(String email) {
+        this.email = email == null ? null : email.trim();
+    }
 }
