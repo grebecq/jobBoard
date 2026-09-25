@@ -31,7 +31,7 @@ export default function AuthModal({ mode: initialMode, onClose }) {
       }
       onClose()
     } catch (e) {
-      setErr(apiMessage(e, 'Неверный email или пароль'))
+      setErr(e?.response?.status === 401 ? 'Неверный email или пароль' : apiMessage(e, 'Не получилось. Попробуйте ещё раз'))
     } finally {
       setBusy(false)
     }
