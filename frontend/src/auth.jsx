@@ -11,10 +11,19 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) { setLoading(false); return }
-    authApi.me()
-      .then(setUser)
-      .catch(() => setToken(null))
-      .finally(() => setLoading(false))
+    let timer
+    let attempt = 0
+    const load = () => authApi.me()
+      .then((me) => { setUser(me); setLoading(false) })
+      .catch((e) => {
+        // токен выбрасываем только если сервер его отверг, а не когда он ещё не запустился
+        const down = !e?.response || e.response.status >= 500
+        if (down && ++attempt < 20) { timer = setTimeout(load, 3000); return }
+        if (e?.response?.status === 401) setToken(null)
+        setLoading(false)
+      })
+    load()
+    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
