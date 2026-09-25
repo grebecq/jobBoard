@@ -26,13 +26,16 @@ class AuthAndAccessTest {
     private MockMvc mockMvc;
 
     private ResultActions register(String email, String password, String role) throws Exception {
+        // браузер за прокси Vite шлёт Origin фронта — такой запрос не должен отбиваться
         return mockMvc.perform(post("/api/auth/register")
+                .header("Origin", "http://localhost:5173")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\",\"role\":\"" + role + "\"}"));
     }
 
     private ResultActions login(String email, String password) throws Exception {
         return mockMvc.perform(post("/api/auth/login")
+                .header("Origin", "http://localhost:5173")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"));
     }
