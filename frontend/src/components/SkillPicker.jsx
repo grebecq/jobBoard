@@ -73,7 +73,7 @@ export default function SkillPicker({ value, onChange, placeholder = 'Java, Kotl
       </div>
       {open && suggestions.length > 0 && (
         <div className="sp-menu">
-          {!text && <div className="sp-hint">Популярные</div>}
+          {!text && <div className="hint">Популярные</div>}
           {suggestions.map((s, i) => (
             <button type="button" key={s.id}
               className={'sp-item' + (i === active ? ' active' : '')}

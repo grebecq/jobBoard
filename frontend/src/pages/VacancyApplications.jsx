@@ -9,7 +9,7 @@ const TABS = [
   { key: 'NEW', label: 'Новые', match: (a) => a.status === 'PENDING' },
   { key: 'VIEWED', label: 'Просмотренные', match: (a) => a.status === 'VIEWED' },
   { key: 'INVITED', label: 'Приглашённые', match: (a) => a.status === 'INVITED' },
-  { key: 'REJECTED', label: 'Отказ', match: (a) => a.status === 'REJECTED' },
+  { key: 'REJECTED', label: 'Отказы', match: (a) => a.status === 'REJECTED' },
 ]
 
 export default function VacancyApplications() {
@@ -27,7 +27,7 @@ export default function VacancyApplications() {
     setLoading(true)
     Promise.all([vacanciesApi.get(id), applicationsApi.forVacancy(id)])
       .then(([v, list]) => { setVacancy(v); setApps(list); setError('') })
-      .catch((e) => setError(apiMessage(e, 'Не удалось загрузить отклики')))
+      .catch((e) => setError(apiMessage(e, 'Отклики не загрузились. Обновите страницу.')))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -45,42 +45,41 @@ export default function VacancyApplications() {
   const visible = apps.filter(current.match)
 
   return (
-    <section className="view wrap">
-      <button className="back" onClick={() => navigate('/my/vacancies')} style={{ marginTop: '28px' }}>← к моим вакансиям</button>
-      <div className="dash-head" style={{ paddingTop: '4px' }}>
-        <div className="eyebrow">Отклики на вакансию</div>
-        <h1>{vacancy?.title || '…'}</h1>
+    <div className="wrap">
+      <button className="back" onClick={() => navigate('/my/vacancies')}>Назад к моим вакансиям</button>
+      <div className="page-head" style={{ paddingTop: 0 }}>
+        <h1>{vacancy?.title || 'Отклики'}</h1>
+        {vacancy && <p>Отклики на вакансию, {vacancy.company}</p>}
       </div>
 
-      {loading ? (
-        <div className="spinner" />
-      ) : error ? (
-        <div className="center-msg">{error}</div>
-      ) : (
-        <div className="panel">
-          <div className="tabs">
-            {TABS.map((t) => {
-              const n = apps.filter(t.match).length
-              return (
-                <button key={t.key} className={tab === t.key ? 'active' : ''} onClick={() => setTab(t.key)}>
-                  {t.label} <span className="tab-n">{n}</span>
+      <div className="stack">
+        {loading ? (
+          <div className="sheet"><div className="spinner" /></div>
+        ) : error ? (
+          <div className="sheet empty">{error}</div>
+        ) : (
+          <div className="sheet">
+            <div className="tabs">
+              {TABS.map((t) => (
+                <button key={t.key} className={tab === t.key ? 'on' : ''} onClick={() => setTab(t.key)}>
+                  {t.label}<span className="n">{apps.filter(t.match).length}</span>
                 </button>
-              )
-            })}
-          </div>
-          {visible.length === 0 ? (
-            <div className="center-msg">
-              {apps.length === 0 ? 'На эту вакансию пока никто не откликнулся.' : 'В этой вкладке пусто.'}
+              ))}
             </div>
-          ) : (
-            visible.map((a) => (
-              <ApplicantItem key={a.id} a={a} open={openId === a.id}
-                onToggle={() => toggle(a)} onChanged={replace} />
-            ))
-          )}
-        </div>
-      )}
-    </section>
+            {visible.length === 0 ? (
+              <div className="empty">
+                {apps.length === 0 ? 'Откликов пока нет. Они появятся здесь, как только кандидаты откликнутся.' : 'В этой вкладке пусто.'}
+              </div>
+            ) : (
+              visible.map((a) => (
+                <ApplicantItem key={a.id} a={a} open={openId === a.id}
+                  onToggle={() => toggle(a)} onChanged={replace} />
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -101,53 +100,57 @@ function ApplicantItem({ a, open, onToggle, onChanged }) {
     try {
       const updated = await applicationsApi.setStatus(a.id, status, comment.trim())
       onChanged(updated)
-      toast(status === 'INVITED' ? 'Кандидат приглашён — он увидит ваши контакты ✓' : 'Отказ отправлен')
+      toast(status === 'INVITED' ? 'Приглашение отправлено. Кандидат увидит ваши контакты.' : 'Отказ отправлен')
     } catch (e) {
-      toast(apiMessage(e, 'Не удалось изменить статус'))
+      toast(apiMessage(e, 'Статус не изменился. Попробуйте ещё раз.'))
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className={'app-item' + (a.status === 'PENDING' ? ' fresh' : '')}>
-      <div className="app-row clickable" onClick={onToggle}>
+    <div className={'row' + (a.status === 'PENDING' ? ' fresh' : '')}>
+      <div className="row-main clickable" onClick={onToggle} role="button" tabIndex={0}
+        aria-expanded={open} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onToggle())}>
         <div>
-          <div className="ti">{candidateName(a)}</div>
-          <div className="ts">
-            {[a.candidateCity, 'откликнулся ' + formatDate(a.createdAt)].filter(Boolean).join(' · ')}
+          <div className="title">{candidateName(a)}</div>
+          <div className="sub">
+            {[a.candidateCity, 'откликнулся ' + formatDate(a.createdAt)].filter(Boolean).join(', ')}
           </div>
         </div>
-        <span className={'status ' + s.cls}>{s.label}</span>
-        <span className="chev">{open ? '▴' : '▾'}</span>
+        <span className={'st ' + s.cls}>{s.label}</span>
+        <svg className={'chev' + (open ? ' open' : '')} viewBox="0 0 24 24" width="16" height="16" fill="none"
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </div>
 
       {open && (
-        <div className="app-body">
-          <div className="contact-actions">
-            {tg && <a className="btn btn-primary" href={tg} target="_blank" rel="noreferrer">✈️ Telegram @{a.candidateTelegram}</a>}
-            <a className="btn btn-ghost" href={`mailto:${a.candidateEmail}`}>✉️ {a.candidateEmail}</a>
-            {a.candidatePhone && <a className="btn btn-ghost" href={`tel:${a.candidatePhone}`}>📞 {a.candidatePhone}</a>}
+        <div className="row-body">
+          <div className="actions">
+            {tg && <a className="btn btn-quiet btn-sm" href={tg} target="_blank" rel="noreferrer">Telegram @{a.candidateTelegram}</a>}
+            <a className="btn btn-quiet btn-sm" href={`mailto:${a.candidateEmail}`}>{a.candidateEmail}</a>
+            {a.candidatePhone && <a className="btn btn-quiet btn-sm" href={`tel:${a.candidatePhone}`}>{a.candidatePhone}</a>}
           </div>
 
           <div className="quote">
-            <div className="quote-l">Сопроводительное письмо</div>
+            <small>Сопроводительное письмо</small>
             {a.coverLetter || <span className="hint">Кандидат не написал письмо</span>}
           </div>
 
-          <div>
-            <label className="field-l">Комментарий кандидату <span className="hint">— необязательно, он увидит его в своём кабинете</span></label>
+          <label className="field">
+            <span>Комментарий кандидату <span className="hint">(необязательно, он увидит его в своих откликах)</span></span>
             <textarea className="inp" rows={3} maxLength={2000} value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Например: «Напишите в Telegram, договоримся о созвоне»" />
-          </div>
+              placeholder="Например: напишите в Telegram, договоримся о созвоне" />
+          </label>
 
-          <div className="contact-actions">
+          <div className="actions">
             <button className="btn btn-primary" disabled={busy} onClick={() => decide('INVITED')}>
               {a.status === 'INVITED' ? 'Обновить приглашение' : 'Пригласить'}
             </button>
-            <button className="btn btn-ghost danger" disabled={busy} onClick={() => decide('REJECTED')}>
-              {a.status === 'REJECTED' ? 'Обновить комментарий к отказу' : 'Отказать'}
+            <button className="btn btn-danger" disabled={busy} onClick={() => decide('REJECTED')}>
+              {a.status === 'REJECTED' ? 'Обновить отказ' : 'Отказать'}
             </button>
           </div>
         </div>

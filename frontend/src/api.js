@@ -22,8 +22,14 @@ api.interceptors.response.use(
   }
 )
 
+export const SERVER_DOWN = 'Сервер не отвечает. Если приложение только что запустили, подождите 10–20 секунд и попробуйте снова.'
+
 export function apiMessage(err, fallback = 'Что-то пошло не так') {
-  return err?.response?.data?.message || fallback
+  const res = err?.response
+  if (res?.data?.message) return res.data.message
+  // нет ответа или прокси Vite не достучался до бэкенда
+  if (!res || res.status >= 500) return SERVER_DOWN
+  return fallback
 }
 
 export function setToken(token) {
@@ -99,6 +105,7 @@ export const dictionariesApi = {
 export const companiesApi = {
   mine: () => api.get('/api/companies/my').then((r) => r.data),
   create: (data) => api.post('/api/companies', data).then((r) => r.data),
+  count: () => api.get('/api/companies', { params: { size: 1 } }).then((r) => unwrapPage(r.data).total),
   update: (id, data) => api.put(`/api/companies/${id}`, data).then((r) => r.data),
 }
 

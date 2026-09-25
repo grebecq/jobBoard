@@ -6,7 +6,6 @@ export function formatSalary(from, to) {
   return 'з/п не указана'
 }
 
-
 export const APPLICATION_STATUS = {
   PENDING:  { cls: 'pending',  label: 'Отправлен' },
   VIEWED:   { cls: 'viewed',   label: 'Просмотрен' },
@@ -18,7 +17,11 @@ export function applicationStatus(status) {
 }
 
 export function formatDate(iso) {
-  return iso ? new Date(iso).toLocaleDateString('ru-RU') : ''
+  if (!iso) return ''
+  const d = new Date(iso)
+  const opts = { day: 'numeric', month: 'long' }
+  if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric'
+  return d.toLocaleDateString('ru-RU', opts)
 }
 
 export function telegramUrl(handle) {
