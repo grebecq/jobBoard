@@ -19,17 +19,14 @@ class CorsTest {
     private MockMvc mockMvc;
 
     @Test
-    void preflightFromAllowedOrigin_passesWithoutToken() throws Exception {
+    void onlyAllowedOriginPasses() throws Exception {
         mockMvc.perform(options("/api/applications/my")
                         .header("Origin", "https://front.example")
                         .header("Access-Control-Request-Method", "GET")
                         .header("Access-Control-Request-Headers", "Authorization"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "https://front.example"));
-    }
 
-    @Test
-    void otherOrigin_isRejected() throws Exception {
         mockMvc.perform(get("/api/dictionaries").header("Origin", "https://evil.example"))
                 .andExpect(status().isForbidden());
     }
