@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../auth.jsx'
 import { useToast } from '../toast.jsx'
+import { apiMessage } from '../api.js'
 import Modal from './Modal.jsx'
 
 export default function AuthModal({ mode: initialMode, onClose }) {
@@ -20,16 +21,17 @@ export default function AuthModal({ mode: initialMode, onClose }) {
     setErr('')
     setBusy(true)
     try {
+      const cleanEmail = email.trim().toLowerCase()
       if (isReg) {
-        await register(email, password, role)
+        await register(cleanEmail, password, role)
         toast('Аккаунт создан')
       } else {
-        await login(email, password)
+        await login(cleanEmail, password)
         toast('Вы вошли')
       }
       onClose()
     } catch (e) {
-      setErr(e?.response?.data?.message || 'Неверный email или пароль')
+      setErr(apiMessage(e, 'Неверный email или пароль'))
     } finally {
       setBusy(false)
     }

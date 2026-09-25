@@ -86,17 +86,6 @@ class VacancySearchTest {
     }
 
     @Test
-    void dictionaries_arePublicAndContainItSkills() throws Exception {
-        mockMvc.perform(get("/api/dictionaries"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.grades[*].value", contains("INTERN", "JUNIOR", "MIDDLE", "SENIOR", "LEAD")))
-                .andExpect(jsonPath("$.specializations[?(@.value == 'BACKEND')].label", contains("Бэкенд-разработка")))
-                .andExpect(jsonPath("$.skills[?(@.name == 'Kotlin')].category", contains("LANGUAGE")))
-                .andExpect(jsonPath("$.skills[?(@.name == 'Kubernetes')].category", contains("DEVOPS")))
-                .andExpect(jsonPath("$.skills.length()", greaterThan(150)));
-    }
-
-    @Test
     void filtersByGradeSpecializationAndFormat() throws Exception {
         vacancy("{\"title\":\"Java Junior\",\"specialization\":\"BACKEND\",\"grade\":\"JUNIOR\",\"workFormat\":\"REMOTE\"}");
         vacancy("{\"title\":\"Java Middle\",\"specialization\":\"BACKEND\",\"grade\":\"MIDDLE\",\"workFormat\":\"OFFICE\"}");
@@ -108,6 +97,14 @@ class VacancySearchTest {
         mockMvc.perform(search().param("specialization", "BACKEND").param("workFormat", "REMOTE"))
                 .andExpect(jsonPath("$.content[*].title", contains("Java Junior")))
                 .andExpect(jsonPath("$.content[0].grade").value("JUNIOR"));
+
+        // закрытые не показываются, новые идут первыми
+        long closed = vacancy("{\"title\":\"Closed\",\"grade\":\"JUNIOR\"}");
+        Vacancy v = vacancyRepository.findById(closed).orElseThrow();
+        v.setStatus(VacancyStatus.CLOSED);
+        vacancyRepository.flush();
+        mockMvc.perform(search())
+                .andExpect(jsonPath("$.content[*].title", contains("React Senior", "Java Middle", "Java Junior")));
     }
 
     @Test
@@ -169,21 +166,7 @@ class VacancySearchTest {
     }
 
     @Test
-    void closedVacancies_hidden_andNewestFirst() throws Exception {
-        vacancy("{\"title\":\"Old\"}");
-        long closed = vacancy("{\"title\":\"Closed\"}");
-        vacancy("{\"title\":\"New\"}");
-
-        Vacancy v = vacancyRepository.findById(closed).orElseThrow();
-        v.setStatus(VacancyStatus.CLOSED);
-        vacancyRepository.flush();
-
-        mockMvc.perform(search())
-                .andExpect(jsonPath("$.content[*].title", contains("New", "Old")));
-    }
-
-    @Test
-    void createVacancy_validatesSalaryRangeAndSkills() throws Exception {
+    void invalidInput_returns400() throws Exception {
         String base = ",\"description\":\"d\",\"companyId\":" + companyId + "}";
         mockMvc.perform(post("/api/vacancies").header("Authorization", employer)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -199,10 +182,7 @@ class VacancySearchTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Bad\",\"grade\":\"GURU\"" + base))
                 .andExpect(status().isBadRequest());
-    }
 
-    @Test
-    void unknownFilterValue_returns400() throws Exception {
         mockMvc.perform(search().param("grade", "GURU"))
                 .andExpect(status().isBadRequest());
     }

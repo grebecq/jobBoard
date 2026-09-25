@@ -12,11 +12,18 @@ export function DictionariesProvider({ children }) {
   const [data, setData] = useState(EMPTY)
   const [loaded, setLoaded] = useState(false)
 
+  // при запуске бэкенд может ещё подниматься, поэтому пробуем несколько раз
   useEffect(() => {
-    dictionariesApi.get()
-      .then(setData)
-      .catch(() => {})
-      .finally(() => setLoaded(true))
+    let timer
+    let attempt = 0
+    const load = () => dictionariesApi.get()
+      .then((d) => { setData(d); setLoaded(true) })
+      .catch(() => {
+        if (++attempt < 20) timer = setTimeout(load, 3000)
+        else setLoaded(true)
+      })
+    load()
+    return () => clearTimeout(timer)
   }, [])
 
   const value = useMemo(() => {
