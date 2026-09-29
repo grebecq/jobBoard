@@ -4,7 +4,6 @@ ALTER TABLE vacancy ADD COLUMN grade          VARCHAR(20);
 ALTER TABLE vacancy ADD COLUMN experience     VARCHAR(20);
 ALTER TABLE vacancy ADD COLUMN work_format    VARCHAR(20);
 
--- раньше «удалёнка» жила в employment_type — это формат работы, а не тип занятости
 UPDATE vacancy SET work_format = 'REMOTE', employment_type = 'FULL_TIME' WHERE employment_type = 'REMOTE';
 UPDATE vacancy SET employment_type = NULL
 WHERE employment_type IS NOT NULL
@@ -14,7 +13,6 @@ CREATE INDEX idx_vacancy_specialization ON vacancy(specialization);
 CREATE INDEX idx_vacancy_grade          ON vacancy(grade);
 CREATE INDEX idx_vacancy_status_created ON vacancy(status, created_at DESC);
 
--- справочник технологий
 ALTER TABLE skill ADD COLUMN category VARCHAR(30) NOT NULL DEFAULT 'OTHER';
 CREATE INDEX idx_skill_category ON skill(category);
 
