@@ -1,5 +1,7 @@
 # Вакант (jobBoard)
 
+![CI](https://github.com/grebecq/jobBoard/actions/workflows/ci.yml/badge.svg)
+
 Сервис вакансий в духе hh.ru: работодатели публикуют вакансии, кандидаты ищут их по фильтрам и откликаются.
 
 **Как устроено:** REST API на Spring Boot (Java 21) с PostgreSQL и Flyway-миграциями, вход по JWT с ролями кандидата, работодателя и администратора. Фронтенд на React собирается вместе с бэкендом в один JAR.
