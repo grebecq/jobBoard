@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/** Сохраняет вакансии из источников. Каждая вакансия в своей транзакции, чтобы одна ошибка не роняла весь сбор. */
 @Component
 @RequiredArgsConstructor
 public class ImportedVacancyWriter {
@@ -30,7 +29,6 @@ public class ImportedVacancyWriter {
         return vacancyRepository.existsBySourceAndExternalId(source, externalId);
     }
 
-    /** Вакансия уже есть: отмечаем, что она всё ещё висит на сайте, и обновляем то, что могло поменяться. */
     @Transactional
     public void touch(VacancySource source, ExternalVacancy ext, LocalDateTime seenAt) {
         vacancyRepository.findBySourceAndExternalId(source, ext.externalId()).ifPresent(v -> {
@@ -69,14 +67,12 @@ public class ImportedVacancyWriter {
         vacancyRepository.save(v);
     }
 
-    /** Закрывает вакансии источника, которых давно нет в выдаче. */
     @Transactional
     public int closeStale(VacancySource source, LocalDateTime seenBefore) {
         return vacancyRepository.closeNotSeenSince(source, seenBefore, VacancyStatus.ACTIVE, VacancyStatus.CLOSED);
     }
 
     private Company company(VacancySource source, ExternalVacancy ext) {
-        // у анонимных работодателей нет id, тогда различаем их по названию
         String externalId = ext.companyExternalId() != null ? ext.companyExternalId() : "name:" + ext.companyName();
         Optional<Company> existing = companyRepository.findBySourceAndExternalId(source, externalId);
         if (existing.isPresent()) {

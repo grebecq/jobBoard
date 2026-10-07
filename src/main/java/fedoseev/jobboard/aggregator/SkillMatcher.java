@@ -11,13 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * Сопоставляет навыки из вакансии со справочником навыков jobBoard.
- * Берёт навыки, которые указал источник, и ищет известные технологии в названии и описании.
- */
 public final class SkillMatcher {
 
-    // как пишут на сайтах -> как называется в справочнике
     private static final Map<String, String> ALIASES = Map.ofEntries(
             Map.entry("spring", "Spring Framework"),
             Map.entry("spring framework", "Spring Framework"),
@@ -46,7 +41,6 @@ public final class SkillMatcher {
             Map.entry("elk stack", "ELK")
     );
 
-    // слишком короткие или слишком общие слова, чтобы искать их в тексте описания
     private static final Set<String> NOT_IN_TEXT = Set.of("c", "r", "go", "rest api", "express", "gin", "vault", "unity", "spark", "helm");
 
     private SkillMatcher() {
@@ -91,7 +85,7 @@ public final class SkillMatcher {
     }
 
     static boolean containsWord(String text, String word) {
-        // C++, C#, .NET: обычный \b тут не работает, поэтому границы проверяем сами
+        // \b не работает с C++ и C#
         Pattern p = Pattern.compile("(?<![\\p{L}\\p{N}+#.])" + Pattern.quote(word) + "(?![\\p{L}\\p{N}+#])");
         return p.matcher(text).find();
     }

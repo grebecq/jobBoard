@@ -44,7 +44,6 @@ public class VacancyResponse {
 
     private VacancySource source;
 
-    // ссылка на вакансию на сайте-источнике, только для собранных вакансий
     private String externalUrl;
 
     private LocalDateTime publishedAt;

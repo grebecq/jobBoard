@@ -7,10 +7,6 @@ import fedoseev.jobboard.enums.Specialization;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/**
- * Источники не всегда отдают грейд и направление, поэтому угадываем их по названию.
- * Если в названии ничего нет, грейд берём из требуемого опыта.
- */
 public final class VacancyClassifier {
 
     private static final Pattern INTERN = word("стажер|стажёр|intern|internship|trainee|практикант");
@@ -24,7 +20,6 @@ public final class VacancyClassifier {
 
     public static Grade grade(String title, Experience experience) {
         String t = lower(title);
-        // порядок важен: "Senior/Lead" - это Lead, "Junior+/Middle" - это Junior
         if (LEAD.matcher(t).find()) return Grade.LEAD;
         if (INTERN.matcher(t).find()) return Grade.INTERN;
         if (JUNIOR.matcher(t).find()) return Grade.JUNIOR;

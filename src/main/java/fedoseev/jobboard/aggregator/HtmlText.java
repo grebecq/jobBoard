@@ -5,7 +5,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 import org.jsoup.safety.Safelist;
 
-/** Превращает HTML-описание вакансии в обычный текст с переносами строк. */
 public final class HtmlText {
 
     private static final String BREAK = "%%BR%%";

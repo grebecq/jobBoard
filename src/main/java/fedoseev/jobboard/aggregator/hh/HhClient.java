@@ -26,13 +26,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-/** Вакансии с hh.ru через их открытый API. */
 @Slf4j
 @Component
 @ConditionalOnProperty(prefix = "aggregator.hh", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class HhClient implements VacancySourceClient {
 
-    // hh.ru пишет пояс без двоеточия: 2026-10-06T12:00:00+0300
+    // у hh.ru пояс без двоеточия: +0300
     private static final DateTimeFormatter HH_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
     private final AggregatorProperties.Hh props;
@@ -109,7 +108,6 @@ public class HhClient implements VacancySourceClient {
 
     ExternalVacancy toExternal(HhDto.Vacancy v, boolean detailed) {
         HhDto.Salary salary = v.salaryRange() != null ? v.salaryRange() : v.salary();
-        // в базе храним зарплату в рублях, вилку в валюте не показываем
         boolean rub = salary != null && "RUR".equals(salary.currency());
         HhDto.Employer employer = v.employer();
 

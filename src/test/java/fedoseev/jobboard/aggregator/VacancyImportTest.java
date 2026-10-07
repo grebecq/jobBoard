@@ -49,7 +49,6 @@ class VacancyImportTest {
     @Autowired
     private JwtService jwtService;
 
-    /** Источник-заглушка вместо настоящего hh.ru. */
     static class FakeSource implements VacancySourceClient {
         List<ExternalVacancy> latest = new ArrayList<>();
         int detailsCalls;
