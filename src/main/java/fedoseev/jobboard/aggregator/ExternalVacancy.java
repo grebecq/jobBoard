@@ -8,10 +8,6 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Вакансия с внешнего сайта в общем виде, до сохранения в базу.
- * description уже очищен от HTML, skillNames - как их написал источник.
- */
 @Builder(toBuilder = true)
 public record ExternalVacancy(
         String externalId,

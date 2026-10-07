@@ -22,7 +22,6 @@ class VacancyClassifierTest {
         assertThat(VacancyClassifier.grade("Java-разработчик", Experience.NO_EXPERIENCE)).isEqualTo(Grade.JUNIOR);
         assertThat(VacancyClassifier.grade("Java-разработчик", Experience.FROM_1_TO_3)).isEqualTo(Grade.MIDDLE);
         assertThat(VacancyClassifier.grade("Java-разработчик", null)).isNull();
-        // "Headless" не должен считаться "Head"
         assertThat(VacancyClassifier.grade("Java developer (headless CMS)", null)).isNull();
     }
 

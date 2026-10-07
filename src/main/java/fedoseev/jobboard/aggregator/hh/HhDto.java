@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
-/** Ответы api.hh.ru, только нужные нам поля. Документация: https://api.hh.ru/openapi/redoc */
 final class HhDto {
 
     private HhDto() {

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** Обходит все источники и складывает их вакансии в базу. */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,7 +22,6 @@ public class VacancyImportService {
     private final SkillRepository skillRepository;
     private final AggregatorProperties properties;
 
-    // расписание и ручной запуск не должны идти одновременно
     private final ReentrantLock lock = new ReentrantLock();
 
     public List<ImportResult> importAll() {

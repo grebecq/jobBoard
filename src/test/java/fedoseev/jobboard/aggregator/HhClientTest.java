@@ -71,7 +71,6 @@ class HhClientTest {
         assertThat(junior.publishedAt()).isEqualTo(expected);
 
         ExternalVacancy anonymous = result.get(1);
-        // зарплату в валюте не сохраняем
         assertThat(anonymous.salaryFrom()).isNull();
         assertThat(anonymous.companyExternalId()).isNull();
         assertThat(anonymous.workFormat()).isEqualTo(WorkFormat.OFFICE);

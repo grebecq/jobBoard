@@ -65,7 +65,6 @@ export function mapVacancy(v) {
     description: v.description || '',
     skills: (v.skillNames || v.skills || []).map((s) => (typeof s === 'string' ? s : s.name)),
     source: v.source || 'JOBBOARD',
-    // ссылка на оригинал у вакансий, собранных с других сайтов
     externalUrl: v.externalUrl || null,
     createdAt: v.publishedAt || v.createdAt || null,
     applicationsCount: v.applicationsCount ?? null,

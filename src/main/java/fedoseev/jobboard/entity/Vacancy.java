@@ -64,7 +64,6 @@ public class Vacancy {
     @Column(nullable = false)
     private VacancyStatus status = VacancyStatus.ACTIVE;
 
-    // откуда вакансия: своя или собрана агрегатором
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VacancySource source = VacancySource.JOBBOARD;
@@ -75,11 +74,9 @@ public class Vacancy {
     @Column(name = "external_url")
     private String externalUrl;
 
-    // для чужих вакансий это дата публикации на сайте-источнике
     @Column(name = "published_at", nullable = false)
     private LocalDateTime publishedAt;
 
-    // когда агрегатор последний раз видел вакансию на источнике
     @Column(name = "last_seen_at")
     private LocalDateTime lastSeenAt;
 

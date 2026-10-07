@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/** Запускает сбор по расписанию (по умолчанию раз в 3 часа). Включается свойством aggregator.enabled=true. */
 @Slf4j
 @Component
 @RequiredArgsConstructor
