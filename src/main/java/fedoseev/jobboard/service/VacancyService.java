@@ -121,6 +121,9 @@ public class VacancyService {
         response.setExperience(vacancy.getExperience());
         response.setWorkFormat(vacancy.getWorkFormat());
         response.setStatus(vacancy.getStatus());
+        response.setSource(vacancy.getSource());
+        response.setExternalUrl(vacancy.getExternalUrl());
+        response.setPublishedAt(vacancy.getPublishedAt());
         response.setCreatedAt(vacancy.getCreatedAt());
         response.setUpdatedAt(vacancy.getUpdatedAt());
         response.setCompanyId(vacancy.getCompany().getId());
@@ -148,6 +151,7 @@ public class VacancyService {
                 Specifications.fieldIn("workFormat", filter.getWorkFormat()),
                 Specifications.fieldIn("employmentType", filter.getEmploymentType()),
                 Specifications.hasAnySkill(filter.getSkill()),
+                Specifications.fieldIn("source", filter.getSource()),
                 Specifications.ofCompany(filter.getCompanyId())
         );
 
@@ -156,7 +160,7 @@ public class VacancyService {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         } else if (pageable.getSort().isUnsorted()) {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")));
+                    Sort.by(Sort.Direction.DESC, "publishedAt").and(Sort.by(Sort.Direction.DESC, "id")));
         }
 
         return vacancyRepository.findAll(spec, pageable)

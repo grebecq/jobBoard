@@ -1,0 +1,15 @@
+{
+  "id": "101",
+  "name": "Junior Java-разработчик",
+  "area": {"id": "1", "name": "Москва"},
+  "salary_range": {"from": 120000, "to": 180000, "currency": "RUR", "gross": false},
+  "employer": {"id": "555", "name": "ООО Ромашка"},
+  "alternate_url": "https://hh.ru/vacancy/101",
+  "published_at": "2026-10-06T12:30:00+0300",
+  "work_format": [{"id": "REMOTE"}],
+  "experience": {"id": "noExperience"},
+  "employment_form": {"id": "FULL"},
+  "description": "<p>Мы ищем <strong>Java</strong>-разработчика.</p><ul><li>Spring Boot</li><li>PostgreSQL &amp; Kafka</li></ul>",
+  "key_skills": [{"name": "Java"}, {"name": "Spring"}, {"name": "Apache Kafka"}, {"name": "Умение слушать"}],
+  "archived": false
+}

@@ -90,7 +90,7 @@ public class Specifications {
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
                 query.orderBy(
                         cb.desc(cb.coalesce(root.<Integer>get("salaryTo"), root.<Integer>get("salaryFrom")), Nulls.LAST),
-                        cb.desc(root.get("createdAt")),
+                        cb.desc(root.get("publishedAt")),
                         cb.desc(root.get("id")));
             }
             return null;

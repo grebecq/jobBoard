@@ -4,6 +4,7 @@ import fedoseev.jobboard.enums.EmploymentType;
 import fedoseev.jobboard.enums.Experience;
 import fedoseev.jobboard.enums.Grade;
 import fedoseev.jobboard.enums.Specialization;
+import fedoseev.jobboard.enums.VacancySource;
 import fedoseev.jobboard.enums.VacancyStatus;
 import fedoseev.jobboard.enums.WorkFormat;
 import jakarta.persistence.*;
@@ -63,6 +64,25 @@ public class Vacancy {
     @Column(nullable = false)
     private VacancyStatus status = VacancyStatus.ACTIVE;
 
+    // откуда вакансия: своя или собрана агрегатором
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VacancySource source = VacancySource.JOBBOARD;
+
+    @Column(name = "external_id")
+    private String externalId;
+
+    @Column(name = "external_url")
+    private String externalUrl;
+
+    // для чужих вакансий это дата публикации на сайте-источнике
+    @Column(name = "published_at", nullable = false)
+    private LocalDateTime publishedAt;
+
+    // когда агрегатор последний раз видел вакансию на источнике
+    @Column(name = "last_seen_at")
+    private LocalDateTime lastSeenAt;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -83,4 +103,14 @@ public class Vacancy {
     )
     private Set<Skill> skills = new HashSet<>();
 
+    @PrePersist
+    void fillPublishedAt() {
+        if (publishedAt == null) {
+            publishedAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isExternal() {
+        return source != VacancySource.JOBBOARD;
+    }
 }

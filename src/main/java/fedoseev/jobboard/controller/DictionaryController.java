@@ -7,6 +7,7 @@ import fedoseev.jobboard.enums.Experience;
 import fedoseev.jobboard.enums.Grade;
 import fedoseev.jobboard.enums.SkillCategory;
 import fedoseev.jobboard.enums.Specialization;
+import fedoseev.jobboard.enums.VacancySource;
 import fedoseev.jobboard.enums.WorkFormat;
 import fedoseev.jobboard.service.SkillService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +26,7 @@ public class DictionaryController {
     private final SkillService skillService;
 
     @Operation(summary = "Все справочники",
-            description = "Специализации, грейды, опыт, формат работы, тип занятости (value + подпись) и все навыки с категориями.")
+            description = "Специализации, грейды, опыт, формат работы, тип занятости, источники (value + подпись) и все навыки с категориями.")
     @GetMapping
     public DictionariesResponse getAll() {
         return new DictionariesResponse(
@@ -35,6 +36,7 @@ public class DictionaryController {
                 Option.of(WorkFormat.class),
                 Option.of(EmploymentType.class),
                 Option.of(SkillCategory.class),
+                Option.of(VacancySource.class),
                 skillService.getAllSkills()
         );
     }

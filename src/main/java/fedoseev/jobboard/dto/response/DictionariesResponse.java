@@ -12,6 +12,7 @@ public record DictionariesResponse(
         List<Option> workFormats,
         List<Option> employmentTypes,
         List<Option> skillCategories,
+        List<Option> sources,
         List<SkillResponse> skills
 ) {
 

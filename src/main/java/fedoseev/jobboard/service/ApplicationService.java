@@ -64,6 +64,9 @@ public class ApplicationService {
         if (vacancy.getStatus() != VacancyStatus.ACTIVE) {
             throw new BadRequestException("Вакансия закрыта, отклики больше не принимаются");
         }
+        if (vacancy.isExternal()) {
+            throw new BadRequestException("Это вакансия с " + vacancy.getSource().getLabel() + ", откликнуться можно на сайте источника");
+        }
 
         Application application = new Application();
         application.setCandidate(candidate);

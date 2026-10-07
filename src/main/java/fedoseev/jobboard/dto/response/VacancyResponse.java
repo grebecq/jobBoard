@@ -1,5 +1,6 @@
 package fedoseev.jobboard.dto.response;
 
+import fedoseev.jobboard.enums.VacancySource;
 import fedoseev.jobboard.enums.VacancyStatus;
 import fedoseev.jobboard.enums.EmploymentType;
 import fedoseev.jobboard.enums.Experience;
@@ -40,6 +41,13 @@ public class VacancyResponse {
     private Experience experience;
 
     private WorkFormat workFormat;
+
+    private VacancySource source;
+
+    // ссылка на вакансию на сайте-источнике, только для собранных вакансий
+    private String externalUrl;
+
+    private LocalDateTime publishedAt;
 
     private LocalDateTime createdAt;
 

@@ -4,6 +4,7 @@ import fedoseev.jobboard.enums.EmploymentType;
 import fedoseev.jobboard.enums.Experience;
 import fedoseev.jobboard.enums.Grade;
 import fedoseev.jobboard.enums.Specialization;
+import fedoseev.jobboard.enums.VacancySource;
 import fedoseev.jobboard.enums.WorkFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,8 @@ public class VacancySearchRequest {
     private List<EmploymentType> employmentType;
 
     private List<Long> skill;
+
+    private List<VacancySource> source;
 
     private Long companyId;
 
