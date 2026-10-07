@@ -34,6 +34,7 @@ export default function VacancyDetail({ onAuth }) {
   )
 
   const closed = String(v.status).toUpperCase() === 'CLOSED'
+  const sourceName = v.externalUrl ? label('source', v.source) : null
   const facts = [
     ['Направление', label('specialization', v.specialization)],
     ['Грейд', label('grade', v.grade)],
@@ -72,7 +73,11 @@ export default function VacancyDetail({ onAuth }) {
             </section>
           )}
 
-          {v.createdAt && <p className="date block">Опубликована {formatDate(v.createdAt)}</p>}
+          {v.createdAt && (
+            <p className="date block">
+              Опубликована {formatDate(v.createdAt)}{sourceName && <> на <a href={v.externalUrl} target="_blank" rel="noopener noreferrer">{sourceName}</a></>}
+            </p>
+          )}
         </article>
 
         <aside className="aside">
@@ -81,7 +86,16 @@ export default function VacancyDetail({ onAuth }) {
             <p className="pay-note">
               {v.salaryFrom || v.salaryTo ? 'Вилка, которую указал работодатель' : 'Обсуждается на собеседовании'}
             </p>
-            {closed ? (
+            {sourceName ? (
+              <>
+                <a className="btn btn-primary btn-lg btn-block" href={v.externalUrl} target="_blank" rel="noopener noreferrer">
+                  Откликнуться на {sourceName}
+                </a>
+                <div className="note">{closed
+                  ? `Вакансия больше не появляется на ${sourceName}, скорее всего её закрыли`
+                  : `Вакансию нашёл агрегатор jobBoard на ${sourceName}, отклик отправляется там`}</div>
+              </>
+            ) : closed ? (
               <div className="note">Вакансия закрыта, отклики больше не принимаются</div>
             ) : applyFlow.canApply && (applyFlow.isApplied(v.id) ? (
               <div className="note ok">Вы откликнулись. Ответ работодателя появится в разделе «Мои отклики».</div>
@@ -94,7 +108,7 @@ export default function VacancyDetail({ onAuth }) {
               <div className="monogram">{(v.company || '?')[0]}</div>
               <div>
                 <div className="name">{v.company}</div>
-                <div className="role">Работодатель</div>
+                <div className="role">{sourceName ? `Работодатель на ${sourceName}` : 'Работодатель'}</div>
               </div>
             </div>
           </div>

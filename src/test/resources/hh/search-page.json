@@ -1,0 +1,33 @@
+{
+  "found": 2, "pages": 1, "page": 0, "per_page": 100,
+  "items": [
+    {
+      "id": "101",
+      "name": "Junior Java-разработчик",
+      "area": {"id": "1", "name": "Москва"},
+      "salary_range": {"from": 120000, "to": 180000, "currency": "RUR", "gross": false},
+      "employer": {"id": "555", "name": "ООО Ромашка", "logo_urls": {"90": "https://img.hh.ru/90.png", "240": "https://img.hh.ru/240.png"}},
+      "snippet": {"requirement": "Знание <highlighttext>Java</highlighttext> и Spring Boot", "responsibility": "Разработка микросервисов"},
+      "alternate_url": "https://hh.ru/vacancy/101",
+      "published_at": "2026-10-06T12:30:00+0300",
+      "work_format": [{"id": "REMOTE", "name": "Удалённо"}],
+      "experience": {"id": "noExperience", "name": "Нет опыта"},
+      "employment_form": {"id": "FULL", "name": "Полная"},
+      "archived": false
+    },
+    {
+      "id": "102",
+      "name": "Java Developer",
+      "area": {"id": "2", "name": "Санкт-Петербург"},
+      "salary": {"from": 3000, "to": null, "currency": "USD", "gross": false},
+      "employer": {"name": "Аноним"},
+      "snippet": {"requirement": null, "responsibility": null},
+      "alternate_url": "https://hh.ru/vacancy/102",
+      "published_at": "2026-10-05T09:00:00+0300",
+      "schedule": {"id": "fullDay"},
+      "experience": {"id": "between3And6"},
+      "employment": {"id": "full"},
+      "archived": false
+    }
+  ]
+}

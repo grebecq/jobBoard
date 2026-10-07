@@ -3,7 +3,7 @@ import { dictionariesApi } from './api.js'
 
 const EMPTY = {
   specializations: [], grades: [], experiences: [], workFormats: [],
-  employmentTypes: [], skillCategories: [], skills: [],
+  employmentTypes: [], skillCategories: [], sources: [], skills: [],
 }
 
 const DictCtx = createContext(null)
@@ -35,6 +35,7 @@ export function DictionariesProvider({ children }) {
       workFormat: index(data.workFormats),
       employmentType: index(data.employmentTypes),
       skillCategory: index(data.skillCategories),
+      source: index(data.sources || []),
     }
     const skillById = Object.fromEntries(data.skills.map((s) => [s.id, s]))
     return {

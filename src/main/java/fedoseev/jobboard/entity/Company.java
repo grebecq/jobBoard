@@ -1,5 +1,6 @@
 package fedoseev.jobboard.entity;
 
+import fedoseev.jobboard.enums.VacancySource;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,6 +37,13 @@ public class Company {
     private String contactEmail;
 
     private String telegram;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VacancySource source = VacancySource.JOBBOARD;
+
+    @Column(name = "external_id")
+    private String externalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")

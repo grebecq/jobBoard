@@ -53,7 +53,7 @@ public class VacancyController {
 
     @Operation(summary = "Поиск вакансий",
             description = "Только активные вакансии. Фильтры: q (текст), city, minSalary, onlyWithSalary, "
-                    + "specialization, grade, experience, workFormat, employmentType, skill (id), companyId. "
+                    + "specialization, grade, experience, workFormat, employmentType, skill (id), source (JOBBOARD, HH), companyId. "
                     + "Списки передаются повтором параметра: ?grade=JUNIOR&grade=MIDDLE. По умолчанию сначала новые.")
     @GetMapping("/search")
     public Page<VacancyResponse> searchVacancies(@ModelAttribute VacancySearchRequest filter, Pageable pageable) {

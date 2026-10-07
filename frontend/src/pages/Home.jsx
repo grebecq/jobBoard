@@ -8,7 +8,7 @@ import { useApplyFlow } from '../useApplyFlow.jsx'
 import { useDictionaries } from '../dictionaries.jsx'
 
 const PAGE_SIZE = 20
-const LIST_KEYS = ['specialization', 'grade', 'experience', 'workFormat', 'employmentType', 'skill']
+const LIST_KEYS = ['specialization', 'grade', 'experience', 'workFormat', 'employmentType', 'source', 'skill']
 const QUICK_ROLES = ['BACKEND', 'FRONTEND', 'FULLSTACK', 'MOBILE', 'QA', 'DEVOPS', 'DATA_SCIENCE', 'ANALYST']
 
 function readFilters(sp) {
@@ -163,6 +163,8 @@ export default function Home({ onAuth }) {
             onToggle={(v) => toggle('experience', v)} />
           <CheckGroup title="Занятость" options={dict.employmentTypes} selected={filters.employmentType}
             onToggle={(v) => toggle('employmentType', v)} />
+          <CheckGroup title="Источник" options={dict.sources || []} selected={filters.source}
+            onToggle={(v) => toggle('source', v)} />
 
           {nActive > 0 && (
             <div className="filters-foot">

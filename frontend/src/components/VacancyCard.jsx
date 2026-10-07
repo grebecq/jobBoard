@@ -21,6 +21,7 @@ export default function VacancyCard({ v, scale, onApply, applied, canApply = tru
         <h2><Link to={`/vacancy/${v.id}`}>{v.title}</Link></h2>
         <div className="org">{[v.company, v.city].filter(Boolean).join(', ')}</div>
         <div className="facts-line">
+          {v.externalUrl && <span className="source">{label('source', v.source)}</span>}
           {v.grade && <span className="grade">{label('grade', v.grade)}</span>}
           {facts.map((f) => <span key={f}>{f}</span>)}
         </div>
@@ -41,7 +42,11 @@ export default function VacancyCard({ v, scale, onApply, applied, canApply = tru
 
       <div className="vrow-foot">
         <span className="date">{v.createdAt ? formatDate(v.createdAt) : 'Недавно'}</span>
-        {canApply && (applied
+        {v.externalUrl ? (
+          <a className="btn btn-quiet btn-sm" href={v.externalUrl} target="_blank" rel="noopener noreferrer">
+            Открыть на {label('source', v.source)}
+          </a>
+        ) : canApply && (applied
           ? <span className="done">Вы откликнулись</span>
           : <button className="btn btn-quiet btn-sm" onClick={() => onApply?.(v)}>Откликнуться</button>)}
       </div>
