@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: jobboard
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/dictionaries
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobboard-db
+          property: connectionString
+      - key: DATABASE_USER
+        fromDatabase:
+          name: jobboard-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: jobboard-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JAVA_OPTS
+        value: -XX:MaxRAMPercentage=60 -XX:+UseSerialGC
+      - key: AGGREGATOR_RUNONSTARTUP
+        value: "true"
+
+databases:
+  - name: jobboard-db
+    plan: free
+    region: frankfurt
+    databaseName: jobboard
+    user: jobboard
