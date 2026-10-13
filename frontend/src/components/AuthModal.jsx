@@ -3,6 +3,7 @@ import { useAuth } from '../auth.jsx'
 import { useToast } from '../toast.jsx'
 import { apiMessage } from '../api.js'
 import Modal from './Modal.jsx'
+import { reachGoal } from '../metrika.js'
 
 export default function AuthModal({ mode: initialMode, onClose }) {
   const [mode, setMode] = useState(initialMode)
@@ -24,6 +25,7 @@ export default function AuthModal({ mode: initialMode, onClose }) {
       const cleanEmail = email.trim().toLowerCase()
       if (isReg) {
         await register(cleanEmail, password, role)
+        reachGoal('register')
         toast('Аккаунт создан')
       } else {
         await login(cleanEmail, password)

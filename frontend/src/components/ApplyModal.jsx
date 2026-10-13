@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { applicationsApi, apiMessage } from '../api.js'
 import { useToast } from '../toast.jsx'
 import Modal from './Modal.jsx'
+import { reachGoal } from '../metrika.js'
 
 export default function ApplyModal({ vacancy, onClose, onApplied }) {
   const [letter, setLetter] = useState('')
@@ -15,6 +16,7 @@ export default function ApplyModal({ vacancy, onClose, onApplied }) {
     setErr('')
     try {
       await applicationsApi.apply(vacancy.id, letter.trim())
+      reachGoal('apply')
       toast('Отклик отправлен')
       onApplied(vacancy.id)
       onClose()

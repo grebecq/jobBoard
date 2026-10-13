@@ -10,6 +10,7 @@ import CandidateDashboard from './pages/CandidateDashboard.jsx'
 import EmployerDashboard from './pages/EmployerDashboard.jsx'
 import VacancyApplications from './pages/VacancyApplications.jsx'
 import { useAuth } from './auth.jsx'
+import { usePageViews } from './metrika.js'
 
 function ProtectedRoute({ role, children }) {
   const { isAuthenticated, hasRole, loading } = useAuth()
@@ -21,6 +22,7 @@ function ProtectedRoute({ role, children }) {
 
 export default function App() {
   const [authOpen, setAuthOpen] = useState(null)
+  usePageViews()
 
   return (
     <>

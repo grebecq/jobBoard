@@ -3,6 +3,8 @@ WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --replace-registry-host=registry.npmmirror.com
 COPY frontend .
+ARG VITE_YM_ID
+ENV VITE_YM_ID=$VITE_YM_ID
 RUN npm run build
 
 FROM maven:3.9-eclipse-temurin-21 AS build
